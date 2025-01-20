@@ -1,5 +1,3 @@
-<script src="https://cdn.jsdelivr.net/npm/@barba/core@2.9.0/dist/barba.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
   // 1) Page order for horizontal transitions
   const pageOrder = [
