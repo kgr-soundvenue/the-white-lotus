@@ -1,5 +1,5 @@
 /*************************************************
- * 1) Page order + helper
+ * 1) Define page order for horizontal transitions
  *************************************************/
 const pageOrder = [
   "residents",
@@ -9,16 +9,19 @@ const pageOrder = [
   "gift-shop",
 ];
 
+/**
+ * Helper: Get the index of a slug in the pageOrder.
+ */
 function getPageIndex(urlString) {
   return pageOrder.indexOf(urlString.replace(/^\/+|\/+$/g, ""));
 }
 
 /*****************************************************
- * 2) Minimal "resetWebflow" (skip w--current reassign)
+ * 2) Minimal "resetWebflow"
+ *    - re-init interactions
+ *    - skip .w--current re-assignment (we handle that)
  *****************************************************/
 function resetWebflow(data) {
-  console.log("[resetWebflow] Re-initializing Webflow…");
-
   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
 
@@ -27,7 +30,7 @@ function resetWebflow(data) {
   window.Webflow && window.Webflow.ready();
   window.Webflow && window.Webflow.require("ix2").init();
 
-  // Optional: removing .w--current logic
+  // (Optional) Remove .w--current logic
   // $(".w--current").removeClass("w--current");
   // $("a").each(function () {
   //   if ($(this).attr("href") === window.location.pathname) {
@@ -53,98 +56,77 @@ function resetWebflow(data) {
   });
 }
 
-/*****************************************************
- * 3) setHighlight: measure & set/animate highlight
- *****************************************************/
+/**************************************************************
+ * 3) setHighlight: measure & set/animate the highlight in one
+ *    .nav_menu_wrap for a given slug
+ **************************************************************/
 function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
-  console.log("[setHighlight] Called for navWrap:", navWrap, "slug:", slug, "animate:", animate);
-
-  // 1) Find highlight & link
+  // 1) Find .nav-highlight & matching link in *this* nav_wrap
   const highlight = navWrap.querySelector(".nav-highlight");
   const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
-  console.log("[setHighlight] .nav-highlight found?", highlight);
-  console.log("[setHighlight] .nav_menu_link found?", newLink);
-
-  if (!highlight || !newLink) {
-    console.warn("[setHighlight] highlight or link not found. Skipping navWrap:", navWrap);
-    return;
-  }
+  if (!highlight || !newLink) return;
 
   // 2) Mark link as current
   newLink.classList.add("w--current");
-  console.log("[setHighlight] Marked link .w--current ->", newLink);
 
-  // 3) Measure boundingRect
+  // 3) Measure bounding rects relative to .nav_menu_wrap
   const linkRect = newLink.getBoundingClientRect();
   const wrapRect = navWrap.getBoundingClientRect();
-  console.log("[setHighlight] linkRect:", linkRect);
-  console.log("[setHighlight] wrapRect:", wrapRect);
-
+  
   const x = linkRect.left - wrapRect.left - highlightPadding;
   const y = linkRect.top  - wrapRect.top  - highlightPadding;
   const w = linkRect.width  + highlightPadding * 2;
   const h = linkRect.height + highlightPadding * 2;
 
-  console.log("[setHighlight] Final highlight dims: x:", x, "y:", y, "w:", w, "h:", h);
-
   // 4) Animate or set
   if (animate && tl) {
-    console.log("[setHighlight] Animating highlight in GSAP timeline…");
     tl.to(highlight, {
-      x,
-      y,
-      width:  w,
+      x, y,
+      width: w,
       height: h,
-      duration: 1,
+      duration: 1, // adjust as needed
       ease: "power2.out"
     }, 0);
   } else {
-    console.log("[setHighlight] Setting highlight with gsap.set (no animation) …");
     gsap.set(highlight, { x, y, width: w, height: h });
   }
 }
 
-/*****************************************************************
- * 4) animateHighlightToLink: loops over all .nav_menu_wrap's
- *****************************************************************/
+/*************************************************************
+ * 4) animateHighlightToLink
+ *    Removes old .w--current + animates highlight
+ *************************************************************/
 function animateHighlightToLink(tl, slug, highlightPadding = 8) {
-  console.log("[animateHighlightToLink] slug:", slug);
-
   // Remove old .w--current
   document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
 
-  // For each nav wrap
-  const allNavWraps = document.querySelectorAll(".nav_menu_wrap");
-  console.log("[animateHighlightToLink] .nav_menu_wrap elements found:", allNavWraps);
-
-  allNavWraps.forEach(navWrap => {
+  // For each .nav_menu_wrap, set or animate
+  document.querySelectorAll(".nav_menu_wrap").forEach(navWrap => {
     setHighlight(tl, navWrap, slug, highlightPadding, true);
   });
 }
 
-/***********************************************
+/*******************************************
  * 5) Barba Hooks
- ***********************************************/
+ *******************************************/
 barba.hooks.enter((data) => {
-  console.log("[barba.hooks.enter] Setting position: fixed on next.container");
   gsap.set(data.next.container, {
     position: "fixed",
     top: 0,
     left: 0,
-    width: "100%"
+    width: "100%",
   });
 });
 
 barba.hooks.after((data) => {
-  console.log("[barba.hooks.after] Setting position: relative on next.container");
   gsap.set(data.next.container, { position: "relative" });
   window.scrollTo(0, 0);
   resetWebflow(data);
 });
 
-/***********************************************
+/********************************************
  * 6) Barba Transitions
- ***********************************************/
+ ********************************************/
 barba.init({
   preventRunning: true,
   transitions: [
@@ -152,83 +134,71 @@ barba.init({
       name: "directional-scroll",
       sync: true,
 
-      // Determine direction
+      // Decide direction
       beforeLeave({ current, next }) {
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
-        console.log("[barba.beforeLeave] fromIndex:", fromIndex, "toIndex:", toIndex, "direction:", next.direction);
       },
 
       leave() {
-        console.log("[barba.leave] We'll animate old container in timeline.");
+        // We'll handle old container in timeline
       },
 
       enter({ current, next }) {
-        console.log("[barba.enter] Setting up container transitions…");
         const direction = next.direction;
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
         // Slide old/new containers
         if (direction === "right") {
-          console.log("[barba.enter] Old slides left, new from right");
           tl.to(current.container, { x: "-100vw", duration: 2 }, 0);
           gsap.set(next.container, { x: "100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         } else {
-          console.log("[barba.enter] Old slides right, new from left");
           tl.to(current.container, { x: "100vw", duration: 2 }, 0);
           gsap.set(next.container, { x: "-100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         }
 
-        // Animate highlight
+        // Animate highlight for next slug
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-        console.log("[barba.enter] Next slug:", slug);
         animateHighlightToLink(tl, slug, 8);
 
-        return tl;
+        return tl; // Return timeline so Barba waits for it
       }
     }
   ]
 });
 
-/***********************************************
- * 7) DOMContentLoaded: partial highlight logic
- ***********************************************/
+/*************************************************************
+ * 7) DOMContentLoaded
+ *    - Desktop nav highlight set immediately (if visible)
+ *    - Mobile nav highlight set only after user opens menu
+ *************************************************************/
 document.addEventListener("DOMContentLoaded", () => {
   const slug = window.location.pathname.replace(/^\/+|\/+$/g, "");
-  console.log("[DOMContentLoaded] Current slug is:", slug);
 
-  // Remove any existing .w--current
+  // Remove any old .w--current
   document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
 
-  // 7a) We'll highlight only the .is-desktop nav on load
-  console.log("[DOMContentLoaded] Setting highlight for .nav_menu_wrap.is-desktop");
+  // 7a) Immediately highlight the "desktop" nav (if that's visible)
   document.querySelectorAll(".nav_menu_wrap.is-desktop").forEach(navWrap => {
     setHighlight(null, navWrap, slug, 8, false);
   });
 
-  // 7b) Then we wait for the user to open the mobile nav
+  // 7b) On mobile menu button click, set highlight
   const mobileButton = document.querySelector(".nav_btn_wrap");
   if (mobileButton) {
-    console.log("[DOMContentLoaded] Found .nav_btn_wrap. Adding click handler…");
     mobileButton.addEventListener("click", () => {
-      console.log("[nav_btn_wrap] Clicked! We'll set mobile highlight…");
-      // Your code to reveal mobile nav goes here (or Webflow Interaction).
-      // Then measure highlight:
+      // Your code that reveals the mobile nav goes here.
+      // Then measure & place highlight after it's visible:
       const mobileNavWrap = document.querySelector(".nav_menu_wrap.is-mobile");
       if (mobileNavWrap) {
-        // If there's a transition for the menu opening, add a small delay:
+        // Might need a short delay if there's an open animation
         setTimeout(() => {
-          console.log("[nav_btn_wrap] Setting highlight for mobile nav after open…");
           setHighlight(null, mobileNavWrap, slug, 8, false);
         }, 50);
-      } else {
-        console.warn("[nav_btn_wrap] .nav_menu_wrap.is-mobile not found in DOM!");
       }
     });
-  } else {
-    console.warn("[DOMContentLoaded] .nav_btn_wrap not found. Mobile menu won't be toggled here.");
   }
 });
