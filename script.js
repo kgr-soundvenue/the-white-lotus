@@ -177,7 +177,7 @@
     // Measure & set highlight (no animation for page load, or do a 0.5s tween if you prefer)
     const linkRect = newLink.getBoundingClientRect();
     const navRect  = navContainer.getBoundingClientRect();
-    const highlightPadding = 1;
+    const highlightPadding = 8;
 
     const leftOffset = linkRect.left - navRect.left;
     const topOffset  = linkRect.top  - navRect.top;
