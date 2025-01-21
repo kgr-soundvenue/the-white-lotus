@@ -1,5 +1,5 @@
 /*************************************************
- * 1) Define page order for horizontal transitions
+ * 1) Define page order for horizontal transitionsss
  *************************************************/
 const pageOrder = [
   "residents",
