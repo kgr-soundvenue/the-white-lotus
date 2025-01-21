@@ -1,19 +1,28 @@
-// 1) Page order for horizontal transitions
+/**************************************
+ * 1) Define your page order
+ **************************************/
 const pageOrder = [
-  'residents',
-  'library',
-  'meme-lounge',
-  'poolside-pod',
-  'gift-shop'
+  "residents",
+  "library",
+  "meme-lounge",
+  "poolside-pod",
+  "gift-shop",
 ];
 
+/**
+ * A helper to figure out the index of a given page slug.
+ */
 function getPageIndex(urlString) {
-  return pageOrder.indexOf(urlString.replace(/^\/+|\/+$/g, ''));
+  return pageOrder.indexOf(urlString.replace(/^\/+|\/+$/g, ""));
 }
 
-// 2) Minimal “resetWebflow” to re-init interactions, but comment out .w--current re-assignment
-//    since we’re now handling that in the transition itself.
+/**************************************
+ * 2) Minimal “resetWebflow” function
+ *    Re-init interactions, but skip .w--current re-assignment.
+ **************************************/
 function resetWebflow(data) {
+  console.log("[resetWebflow] re-initializing Webflow…");
+
   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
 
@@ -22,7 +31,7 @@ function resetWebflow(data) {
   window.Webflow && window.Webflow.ready();
   window.Webflow && window.Webflow.require("ix2").init();
 
-  // --- If desired, you can REMOVE or COMMENT OUT the .w--current logic here ---
+  // If desired, you can remove or comment out the .w--current logic
   // $(".w--current").removeClass("w--current");
   // $("a").each(function () {
   //   if ($(this).attr("href") === window.location.pathname) {
@@ -48,57 +57,112 @@ function resetWebflow(data) {
   });
 }
 
-// 3) A helper to manually assign .w--current to the new link
-//    Then measure & animate the highlight in the same timeline.
-function animateHighlightToLink(tl, slug, highlightPadding = 8) {
-  // 1) Remove .w--current from any existing links
-  document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
+/**************************************
+ * 3) A small helper to measure & animate
+ *    the highlight in one nav container.
+ **************************************/
+function setHighlight(tl, navContainer, slug, highlightPadding, animate = true) {
+  console.log("[setHighlight] Called for slug:", slug, "on navContainer:", navContainer);
 
-  // 2) For each nav container on the page (desktop & mobile)
-  document.querySelectorAll(".nav_menu_list").forEach(navContainer => {
-    // Find the highlight in *this* nav
-    const highlight = navContainer.querySelector(".nav-highlight");
-    if (!highlight) return; // skip if no highlight element here
+  // Find the highlight element and link in *this* nav
+  const highlight = navContainer.querySelector(".nav-highlight");
+  const newLink   = navContainer.querySelector(`.nav_menu_link[href="/${slug}"]`);
 
-    // Find the new link by slug in *this* nav
-    const newLink = navContainer.querySelector(`.nav_menu_link[href="/${slug}"]`);
-    if (!newLink) return; // skip if this nav doesn't have a link matching the slug
+  console.log("[setHighlight] highlight element found:", highlight);
+  console.log("[setHighlight] newLink for slug:", newLink);
 
-    // Add .w--current to that link
-    newLink.classList.add("w--current");
+  if (!highlight || !newLink) {
+    console.log("[setHighlight] highlight or link NOT found, aborting.");
+    return;
+  }
 
-    // 3) Measure position (within *this* nav)
-    const linkRect = newLink.getBoundingClientRect();
-    const navRect  = navContainer.getBoundingClientRect();
-    const leftOffset = linkRect.left - navRect.left;
-    const topOffset  = linkRect.top  - navRect.top;
+  // Mark the link as current
+  newLink.classList.add("w--current");
+  console.log("[setHighlight] added .w--current to link:", newLink);
 
-    // Animate .nav-highlight in the same timeline (tl)
-    tl.to(highlight, {
+  // Calculate bounding rectangles
+  const linkRect = newLink.getBoundingClientRect();
+  const navRect  = navContainer.getBoundingClientRect();
+  const leftOffset = linkRect.left - navRect.left;
+  const topOffset  = linkRect.top  - navRect.top;
+  const width  = linkRect.width  + highlightPadding * 2;
+  const height = linkRect.height + highlightPadding * 2;
+
+  console.log("[setHighlight] linkRect:", linkRect);
+  console.log("[setHighlight] navRect:", navRect);
+  console.log("[setHighlight] final highlight width:", width, "height:", height);
+
+  // For the initial load, we can set the highlight with no animation
+  // or do a quick tween if you want. For transitions, we animate in the timeline.
+  if (animate && tl) {
+    console.log("[setHighlight] Animating highlight in timeline…");
+    tl.to(
+      highlight,
+      {
+        x: leftOffset - highlightPadding,
+        y: topOffset - highlightPadding,
+        width,
+        height,
+        duration: 1, // match or complement your page transition duration
+        ease: "power2.out",
+      },
+      0
+    );
+  } else {
+    console.log("[setHighlight] Setting highlight with GSAP.set (no animation) …");
+    gsap.set(highlight, {
       x: leftOffset - highlightPadding,
       y: topOffset - highlightPadding,
-      width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 2,
-      duration: 1, // match or complement your page transition duration
-      ease: "power2.out"
-    }, 0);
-    // ^ starts at the same time as the page transition (time = 0)
+      width,
+      height,
+    });
+  }
+}
+
+/**************************************
+ * 4) The main function that assigns
+ *    .w--current & animates highlight for *all* navs
+ **************************************/
+function animateHighlightToLink(tl, slug, highlightPadding = 8) {
+  console.log("[animateHighlightToLink] Called with slug:", slug);
+
+  // Remove .w--current from all existing links (desktop & mobile)
+  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
+
+  // For each nav container, measure & animate the highlight
+  const allNavs = document.querySelectorAll(".nav_menu_list");
+  console.log("[animateHighlightToLink] Found nav containers:", allNavs);
+
+  allNavs.forEach((nav) => {
+    setHighlight(tl, nav, slug, highlightPadding, true);
   });
 }
 
-// 4) Barba hooks (position fix + re-init Webflow)
+/**************************************
+ * 5) Barba Hooks
+ **************************************/
+// A small fix for container positioning
 barba.hooks.enter((data) => {
-  gsap.set(data.next.container, { position: "fixed", top: 0, left: 0, width: "100%" });
+  gsap.set(data.next.container, {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+  });
+  console.log("[barba.hooks.enter] Fixed next.container so old remains in flow until transition ends.");
 });
+
 barba.hooks.after((data) => {
   gsap.set(data.next.container, { position: "relative" });
   window.scrollTo(0, 0);
 
-  // Re-init Webflow interactions, but not re-assigning .w--current (we did that manually).
+  console.log("[barba.hooks.after] Re-init Webflow, skipping .w--current logic.");
   resetWebflow(data);
 });
 
-// 5) Barba transitions
+/**************************************
+ * 6) Barba Transitions
+ **************************************/
 barba.init({
   preventRunning: true,
   transitions: [
@@ -111,85 +175,75 @@ barba.init({
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
+        console.log("[barba.beforeLeave] fromIndex:", fromIndex, "toIndex:", toIndex, "=> direction:", next.direction);
       },
 
+      // We won't do anything in leave() — we'll handle it in the timeline
       leave() {
-        // We'll handle the old container in the timeline below
+        console.log("[barba.leave] No direct animation here, everything is in the timeline.");
       },
 
+      // Animate old container out and new container in
       enter({ current, next }) {
+        console.log("[barba.enter] Starting container transitions…");
         const direction = next.direction;
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
-        // 1) Animate the old/new container in the same timeline
+        // 1) Animate old/new containers
         if (direction === "right") {
-          // old slides left
+          // Old slides left
           tl.to(current.container, {
             x: "-100vw",
-            duration: 2
+            duration: 2,
           }, 0);
 
-          // new slides in from right
+          // New slides in from right
           gsap.set(next.container, { x: "100vw", zIndex: 10 });
           tl.to(next.container, {
             x: 0,
-            duration: 1.8
+            duration: 1.8,
           }, 0);
         } else {
-          // old slides right
+          // Old slides right
           tl.to(current.container, {
             x: "100vw",
-            duration: 2
+            duration: 2,
           }, 0);
 
-          // new slides in from left
+          // New slides in from left
           gsap.set(next.container, { x: "-100vw", zIndex: 10 });
           tl.to(next.container, {
             x: 0,
-            duration: 1.8
+            duration: 1.8,
           }, 0);
         }
 
-        // 2) Animate the highlight behind the new link DURING the same timeline
-        //    We'll figure out the next slug and manually assign .w--current
+        // 2) Animate the highlight behind the new link in the same timeline
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+        console.log("[barba.enter] About to animate highlight for slug:", slug);
         animateHighlightToLink(tl, slug, 8);
 
-        // Return the timeline to let Barba wait for it
+        // Return timeline to let Barba wait for it
         return tl;
-      }
-    }
-  ]
+      },
+    },
+  ],
 });
 
-// 6) On the very first load, set highlight to the current link
-//    in case user is landing on a specific page for the first time.
+/**************************************
+ * 7) On the first load, set highlight
+ *    to the current link for all navs
+ **************************************/
 document.addEventListener("DOMContentLoaded", () => {
-  // If you want to do it “manually”:
+  console.log("[DOMContentLoaded] Setting highlight on first load…");
   const slug = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  console.log("[DOMContentLoaded] Current slug is:", slug);
 
-  // For each nav container (desktop & mobile)
-  document.querySelectorAll(".nav_menu_list").forEach(navContainer => {
-    const newLink   = navContainer.querySelector(`.nav_menu_link[href="/${slug}"]`);
-    const highlight = navContainer.querySelector(".nav-highlight");
-    if (!newLink || !highlight) return;
+  // Remove any old .w--current (in case of SSR/hard reload)
+  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
 
-    // Mark it .w--current
-    newLink.classList.add("w--current");
-
-    // Measure & set highlight (no animation for page load, or do a 0.5s tween if desired)
-    const linkRect = newLink.getBoundingClientRect();
-    const navRect  = navContainer.getBoundingClientRect();
-    const highlightPadding = 8;
-
-    const leftOffset = linkRect.left - navRect.left;
-    const topOffset  = linkRect.top  - navRect.top;
-
-    gsap.set(highlight, {
-      x: leftOffset - highlightPadding,
-      y: topOffset - highlightPadding,
-      width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 2
-    });
+  // For each nav, just *set* (no animation) the highlight
+  document.querySelectorAll(".nav_menu_list").forEach((nav) => {
+    setHighlight(null, nav, slug, 8, false);
   });
 });
