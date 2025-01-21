@@ -1,4 +1,3 @@
-<script>
 /*************************************************
  * 1) Define page order for horizontal transitions
  *************************************************/
@@ -288,4 +287,3 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 });
-</script>
