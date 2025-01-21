@@ -75,7 +75,7 @@
       x: leftOffset - highlightPadding,
       y: topOffset - highlightPadding,
       width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 2,
+      height: linkRect.height + highlightPadding * 1,
       duration: 1, // match or complement your page transition duration
       ease: "power2.out"
     }, 0); 
