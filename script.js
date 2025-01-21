@@ -56,9 +56,9 @@
     document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
 
     // 2) Find the new link by slug
-    const newLink = document.querySelector(`.button_2_wrap .button_2_text[href="/${slug}"]`);
+    const newLink = document.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
     const highlight = document.querySelector(".nav-highlight");
-    const navContainer = document.querySelector(".button_2_wrap");
+    const navContainer = document.querySelector(".nav_menu_list");
     if (!newLink || !highlight || !navContainer) return;
 
     // Add .w--current to the new link
@@ -166,9 +166,9 @@
     // We won't animate here in a timeline; we'll just do an immediate set with GSAP
     // so there's no flicker.
     
-    const newLink = document.querySelector(`.button_2_wrap .button_2_text[href="/${slug}"]`);
+    const newLink = document.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
     const highlight = document.querySelector(".nav-highlight");
-    const navContainer = document.querySelector(".button_2_wrap");
+    const navContainer = document.querySelector(".nav_menu_list");
     if (!newLink || !highlight || !navContainer) return;
 
     // Mark it .w--current
