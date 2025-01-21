@@ -186,6 +186,6 @@
       x: leftOffset - highlightPadding,
       y: topOffset - highlightPadding,
       width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 2
+      height: linkRect.height + highlightPadding * 1
     });
   });
