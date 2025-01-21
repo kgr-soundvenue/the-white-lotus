@@ -24,15 +24,16 @@ function getPageIndex(urlString) {
  *****************************************************/
 function resetWebflow(data) {
   // Convert the next page's HTML to a DOM, grab its <html> node
-  let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
+  let dom = $(new DOMParser()
+    .parseFromString(data.next.html, "text/html"))
+    .find("html");
 
   // Sync the data-wf-page
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
 
   // Re-init Webflow
   if (window.Webflow) {
-    // ***** IMPORTANT: comment out destroy() *****
-    // window.Webflow.destroy();
+    window.Webflow.destroy();
     window.Webflow.ready();
     window.Webflow.require("ix2").init();
   }
@@ -43,23 +44,20 @@ function resetWebflow(data) {
 
     // Strip out any extra DOMContentLoaded wrapper if present
     if (codeString.includes("DOMContentLoaded")) {
-      codeString = codeString
-        .replace(/window\.addEventListener\("DOMContentLoaded".*?\{\s*/, "")
-        .replace(/\s*\}\)\s*;\s*$/, "");
+      codeString = codeString.replace(
+        /window\.addEventListener\("DOMContentLoaded".*?\{\s*/,
+        ""
+      ).replace(/\s*\}\)\s*;\s*$/, "");
     }
 
     // Create a script in the document
     let script = document.createElement("script");
     script.type = "text/javascript";
-
     if ($(this).attr("src")) {
       script.src = $(this).attr("src");
-    } else {
-      script.text = codeString;
     }
-
-    // ***** IMPORTANT: do NOT remove the appended script! *****
-    document.body.appendChild(script);
+    script.text = codeString;
+    document.body.appendChild(script).remove();
   });
 }
 
