@@ -199,44 +199,21 @@ barba.init({
 });
 
 /*************************************************************
-* 7) DOMContentLoaded: on first load, set highlight
-*    with no animation for each .nav_menu_wrap
-*************************************************************/
+ * 7) DOMContentLoaded: on first load, set highlight
+ *    with no animation for each .nav_menu_wrap
+ *************************************************************/
 document.addEventListener("DOMContentLoaded", () => {
   const slug = window.location.pathname.replace(/^\/+|\/+$/g, "");
- 
+
   // Remove old .w--current
   document
     .querySelectorAll(".w--current")
     .forEach(el => el.classList.remove("w--current"));
- 
+
   // For each nav wrapper, just set highlight (no animation)
   document
     .querySelectorAll(".nav_menu_wrap")
     .forEach(navWrap => {
-      // Find den nærmeste forælder med klassen .nav
-      const navParent = navWrap.closest(".nav");
-      let needTrick = false;
-      let originalDisplay, originalVisibility;
- 
-      // Tjek om forælderens display er none
-      if (navParent && window.getComputedStyle(navParent).display === "none") {
-        needTrick = true;
-        // Gem oprindelige værdier
-        originalDisplay = navParent.style.display;
-        originalVisibility = navParent.style.visibility;
-        // Sæt forælderen til at være usynlig men alligevel medtaget i layout
-        navParent.style.display = "block";
-        navParent.style.visibility = "hidden";
-      }
- 
-      // Kør setHighlight som normalt
       setHighlight(null, navWrap, slug, 8, false);
- 
-      // Gendan oprindelige værdier hvis nødvendigt
-      if (needTrick) {
-        navParent.style.display = originalDisplay;
-        navParent.style.visibility = originalVisibility;
-      }
     });
 });
