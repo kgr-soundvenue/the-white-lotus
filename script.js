@@ -61,7 +61,7 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 
   // 1) Find highlight & link
   const highlight = navWrap.querySelector(".nav-highlight");
-  const newLink   = navWrap.querySelector(.nav_menu_list .nav_menu_link[href="/${slug}"]);
+  const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
   console.log("[setHighlight] .nav-highlight found?", highlight);
   console.log("[setHighlight] .nav_menu_link found?", newLink);
 
