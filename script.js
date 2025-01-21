@@ -63,8 +63,9 @@ function resetWebflow(data) {
 function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
   // 1) Find the highlight & matching link in *this* nav wrap
   const highlight = navWrap.querySelector(".nav-highlight");
-  const newLink   = navWrap.querySelector(.nav_menu_list .nav_menu_link[href="/${slug}"]);
-
+const newLink = navWrap.querySelector(
+  `.nav_menu_list .nav_menu_link[href="/${slug}"]`
+);
   // If missing either highlight or link, skip
   if (!highlight || !newLink) return;
 
