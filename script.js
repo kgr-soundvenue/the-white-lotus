@@ -210,26 +210,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 7b) Then we wait for the user to open the mobile nav
-  //     Here we grab the button by ID instead of a class
-  const mobileButton = document.getElementById("mobile-menu-button");
+  const mobileButton = document.querySelector(".nav_btn_wrap");
   if (mobileButton) {
-    console.log("[DOMContentLoaded] Found #mobile-menu-button. Adding click handler…");
+    console.log("[DOMContentLoaded] Found .nav_btn_wrap. Adding click handler…");
     mobileButton.addEventListener("click", () => {
-      console.log("[mobile-menu-button] Clicked! We'll set mobile highlight…");
+      console.log("[nav_btn_wrap] Clicked! We'll set mobile highlight…");
       // Your code to reveal mobile nav goes here (or Webflow Interaction).
       // Then measure highlight:
       const mobileNavWrap = document.querySelector(".nav_menu_wrap.is-mobile");
       if (mobileNavWrap) {
         // If there's a transition for the menu opening, add a small delay:
         setTimeout(() => {
-          console.log("[mobile-menu-button] Setting highlight for mobile nav after open…");
+          console.log("[nav_btn_wrap] Setting highlight for mobile nav after open…");
           setHighlight(null, mobileNavWrap, slug, 8, false);
         }, 50);
       } else {
-        console.warn("[mobile-menu-button] .nav_menu_wrap.is-mobile not found in DOM!");
+        console.warn("[nav_btn_wrap] .nav_menu_wrap.is-mobile not found in DOM!");
       }
     });
   } else {
-    console.warn("[DOMContentLoaded] #mobile-menu-button not found. Mobile menu won't be toggled here.");
+    console.warn("[DOMContentLoaded] .nav_btn_wrap not found. Mobile menu won't be toggled here.");
   }
 });
