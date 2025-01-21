@@ -75,7 +75,7 @@
       x: leftOffset - highlightPadding,
       y: topOffset - highlightPadding,
       width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 1,
+      height: linkRect.height + highlightPadding * 2,
       duration: 1, // match or complement your page transition duration
       ease: "power2.out"
     }, 0); 
@@ -177,7 +177,7 @@
     // Measure & set highlight (no animation for page load, or do a 0.5s tween if you prefer)
     const linkRect = newLink.getBoundingClientRect();
     const navRect  = navContainer.getBoundingClientRect();
-    const highlightPadding = 8;
+    const highlightPadding = 2;
 
     const leftOffset = linkRect.left - navRect.left;
     const topOffset  = linkRect.top  - navRect.top;
@@ -186,6 +186,6 @@
       x: leftOffset - highlightPadding,
       y: topOffset - highlightPadding,
       width: linkRect.width + highlightPadding * 2,
-      height: linkRect.height + highlightPadding * 1
+      height: linkRect.height + highlightPadding * 2
     });
   });
