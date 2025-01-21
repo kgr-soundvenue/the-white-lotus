@@ -10,9 +10,10 @@ const pageOrder = [
 ];
 
 /**
- * Helper: get the index of a slug in the pageOrder
+ * A helper to get the page index for a given slug.
  */
 function getPageIndex(urlString) {
+  // Trim leading/trailing slashes and find the index in pageOrder
   return pageOrder.indexOf(urlString.replace(/^\/+|\/+$/g, ""));
 }
 
@@ -22,35 +23,39 @@ function getPageIndex(urlString) {
  *    - skip .w--current re-assignment (we handle that)
  *****************************************************/
 function resetWebflow(data) {
-  let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
+  // Convert the next page's HTML to a DOM, grab its <html> node
+  let dom = $(new DOMParser()
+    .parseFromString(data.next.html, "text/html"))
+    .find("html");
+
+  // Sync the data-wf-page
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
 
   // Re-init Webflow
-  window.Webflow && window.Webflow.destroy();
-  window.Webflow && window.Webflow.ready();
-  window.Webflow && window.Webflow.require("ix2").init();
+  if (window.Webflow) {
+    window.Webflow.destroy();
+    window.Webflow.ready();
+    window.Webflow.require("ix2").init();
+  }
 
-  // If desired, remove or comment out the .w--current logic
-  // $(".w--current").removeClass("w--current");
-  // $("a").each(function () {
-  //   if ($(this).attr("href") === window.location.pathname) {
-  //     $(this).addClass("w--current");
-  //   }
-  // });
-
-  // Re-inject scripts
+  // Optionally re-inject scripts
   dom.find("[data-barba-script]").each(function () {
     let codeString = $(this).text();
+
+    // Strip out any extra DOMContentLoaded wrapper if present
     if (codeString.includes("DOMContentLoaded")) {
-      let newCodeString = codeString.replace(
-        /window\.addEventListener\("DOMContentLoaded",\s*\(\s*event\s*\)\s*=>\s*{\s*/,
+      codeString = codeString.replace(
+        /window\.addEventListener\("DOMContentLoaded".*?\{\s*/,
         ""
-      );
-      codeString = newCodeString.replace(/\s*}\s*\);\s*$/, "");
+      ).replace(/\s*\}\)\s*;\s*$/, "");
     }
+
+    // Create a script in the document
     let script = document.createElement("script");
     script.type = "text/javascript";
-    if ($(this).attr("src")) script.src = $(this).attr("src");
+    if ($(this).attr("src")) {
+      script.src = $(this).attr("src");
+    }
     script.text = codeString;
     document.body.appendChild(script).remove();
   });
@@ -61,35 +66,35 @@ function resetWebflow(data) {
  *    .nav_menu_wrap for a given slug
  **************************************************************/
 function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
-  // 1) Find the highlight & matching link in *this* nav wrap
+  // 1) Find the highlight & matching link in *this* navWrap
   const highlight = navWrap.querySelector(".nav-highlight");
-const newLink = navWrap.querySelector(
-  `.nav_menu_list .nav_menu_link[href="/${slug}"]`
-);
+  const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
+
   // If missing either highlight or link, skip
   if (!highlight || !newLink) return;
 
   // 2) Mark the link as current
   newLink.classList.add("w--current");
 
-  // 3) Measure bounding rectangles relative to .nav_menu_wrap
+  // 3) Measure bounding rectangles (relative to the .nav_menu_wrap)
   const linkRect = newLink.getBoundingClientRect();
   const wrapRect = navWrap.getBoundingClientRect();
-  
+
   const x = linkRect.left - wrapRect.left - highlightPadding;
   const y = linkRect.top  - wrapRect.top  - highlightPadding;
   const w = linkRect.width  + highlightPadding * 2;
   const h = linkRect.height + highlightPadding * 2;
 
-  // 4) Either animate inside the GSAP timeline or just set immediately
+  // 4) Either animate inside GSAP timeline or just set immediately
   if (animate && tl) {
     tl.to(
       highlight,
       {
-        x, y,
-        width:  w,
+        x,
+        y,
+        width: w,
         height: h,
-        duration: 1, // Adjust to match your transition duration
+        duration: 1,     // Adjust to match your transition duration
         ease: "power2.out",
       },
       0
@@ -105,20 +110,24 @@ const newLink = navWrap.querySelector(
  *    to remove old .w--current and set/animate new highlight
  *************************************************************/
 function animateHighlightToLink(tl, slug, highlightPadding = 8) {
-  // Remove old .w--current from ALL nav links (desktop + mobile)
-  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
+  // Remove old .w--current from all nav links (desktop + mobile)
+  document
+    .querySelectorAll(".w--current")
+    .forEach(el => el.classList.remove("w--current"));
 
   // For each .nav_menu_wrap, measure & animate highlight
-  document.querySelectorAll(".nav_menu_wrap").forEach((navWrap) => {
-    setHighlight(tl, navWrap, slug, highlightPadding, true);
-  });
+  document
+    .querySelectorAll(".nav_menu_wrap")
+    .forEach(navWrap => {
+      setHighlight(tl, navWrap, slug, highlightPadding, true);
+    });
 }
 
 /*******************************************
  * 5) Barba hooks: fix container positioning
  *    + re-init Webflow after transitions
  *******************************************/
-barba.hooks.enter((data) => {
+barba.hooks.enter(data => {
   gsap.set(data.next.container, {
     position: "fixed",
     top: 0,
@@ -126,7 +135,8 @@ barba.hooks.enter((data) => {
     width: "100%",
   });
 });
-barba.hooks.after((data) => {
+
+barba.hooks.after(data => {
   gsap.set(data.next.container, { position: "relative" });
   window.scrollTo(0, 0);
 
@@ -153,7 +163,7 @@ barba.init({
       },
 
       leave() {
-        // We'll handle old container in the timeline
+        // We'll handle the old container in the timeline
       },
 
       enter({ current, next }) {
@@ -162,15 +172,17 @@ barba.init({
 
         // Animate old/new containers horizontally
         if (direction === "right") {
-          // old slides left
+          // Old slides left
           tl.to(current.container, { x: "-100vw", duration: 2 }, 0);
-          // new slides in from right
+
+          // New slides in from right
           gsap.set(next.container, { x: "100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         } else {
-          // old slides right
+          // Old slides right
           tl.to(current.container, { x: "100vw", duration: 2 }, 0);
-          // new slides in from left
+
+          // New slides in from left
           gsap.set(next.container, { x: "-100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         }
@@ -179,7 +191,8 @@ barba.init({
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
         animateHighlightToLink(tl, slug, 8);
 
-        return tl; // Return timeline so Barba waits for it
+        // Return the timeline so Barba waits for it
+        return tl;
       },
     },
   ],
@@ -193,10 +206,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const slug = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
   // Remove old .w--current
-  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
+  document
+    .querySelectorAll(".w--current")
+    .forEach(el => el.classList.remove("w--current"));
 
   // For each nav wrapper, just set highlight (no animation)
-  document.querySelectorAll(".nav_menu_wrap").forEach((navWrap) => {
-    setHighlight(null, navWrap, slug, 8, false);
-  });
+  document
+    .querySelectorAll(".nav_menu_wrap")
+    .forEach(navWrap => {
+      setHighlight(null, navWrap, slug, 8, false);
+    });
 });
