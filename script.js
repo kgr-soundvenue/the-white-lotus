@@ -1,5 +1,5 @@
 /*************************************************
- * 1) Define page order for horizontal transitionss
+ * 1) Page order + helper
  *************************************************/
 const pageOrder = [
   "residents",
@@ -9,19 +9,16 @@ const pageOrder = [
   "gift-shop",
 ];
 
-/** 
- * A helper to figure out the index of a given page slug
- */
 function getPageIndex(urlString) {
   return pageOrder.indexOf(urlString.replace(/^\/+|\/+$/g, ""));
 }
 
 /*****************************************************
- * 2) Minimal “resetWebflow”
- *    - re-init interactions
- *    - skip .w--current re-assignment (we handle that)
+ * 2) Minimal "resetWebflow" (skip w--current reassign)
  *****************************************************/
 function resetWebflow(data) {
+  console.log("[resetWebflow] Re-initializing Webflow…");
+
   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
 
@@ -30,7 +27,7 @@ function resetWebflow(data) {
   window.Webflow && window.Webflow.ready();
   window.Webflow && window.Webflow.require("ix2").init();
 
-  // If desired, remove or comment out the .w--current logic:
+  // Optional: removing .w--current logic
   // $(".w--current").removeClass("w--current");
   // $("a").each(function () {
   //   if ($(this).attr("href") === window.location.pathname) {
@@ -56,88 +53,98 @@ function resetWebflow(data) {
   });
 }
 
-/**************************************************************
- * 3) setHighlight: measure & set/animate the highlight in one
- *    .nav_wrapper for a given slug
- **************************************************************/
-function setHighlight(tl, navWrapper, slug, highlightPadding = 8, animate = true) {
-  // 1) Find the .nav-highlight & matching link in *this* .nav_wrapper
-  const highlight = navWrapper.querySelector(".nav-highlight");
-  const newLink   = navWrapper.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
+/*****************************************************
+ * 3) setHighlight: measure & set/animate highlight
+ *****************************************************/
+function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
+  console.log("[setHighlight] Called for navWrap:", navWrap, "slug:", slug, "animate:", animate);
 
-  // If missing either highlight or link, skip
-  if (!highlight || !newLink) return;
+  // 1) Find highlight & link
+  const highlight = navWrap.querySelector(".nav-highlight");
+  const newLink   = navWrap.querySelector(.nav_menu_list .nav_menu_link[href="/${slug}"]);
+  console.log("[setHighlight] .nav-highlight found?", highlight);
+  console.log("[setHighlight] .nav_menu_link found?", newLink);
 
-  // 2) Mark the link as current
+  if (!highlight || !newLink) {
+    console.warn("[setHighlight] highlight or link not found. Skipping navWrap:", navWrap);
+    return;
+  }
+
+  // 2) Mark link as current
   newLink.classList.add("w--current");
+  console.log("[setHighlight] Marked link .w--current ->", newLink);
 
-  // 3) Measure bounding rectangles relative to .nav_wrapper
-  const linkRect     = newLink.getBoundingClientRect();
-  const wrapperRect  = navWrapper.getBoundingClientRect();
-  
-  const x = linkRect.left - wrapperRect.left - highlightPadding;
-  const y = linkRect.top  - wrapperRect.top  - highlightPadding;
+  // 3) Measure boundingRect
+  const linkRect = newLink.getBoundingClientRect();
+  const wrapRect = navWrap.getBoundingClientRect();
+  console.log("[setHighlight] linkRect:", linkRect);
+  console.log("[setHighlight] wrapRect:", wrapRect);
+
+  const x = linkRect.left - wrapRect.left - highlightPadding;
+  const y = linkRect.top  - wrapRect.top  - highlightPadding;
   const w = linkRect.width  + highlightPadding * 2;
   const h = linkRect.height + highlightPadding * 2;
 
-  // 4) Either animate inside the GSAP timeline or just set immediately
+  console.log("[setHighlight] Final highlight dims: x:", x, "y:", y, "w:", w, "h:", h);
+
+  // 4) Animate or set
   if (animate && tl) {
-    tl.to(
-      highlight,
-      {
-        x, 
-        y,
-        width:  w,
-        height: h,
-        duration: 1, // match your transition duration
-        ease: "power2.out",
-      },
-      0
-    );
+    console.log("[setHighlight] Animating highlight in GSAP timeline…");
+    tl.to(highlight, {
+      x,
+      y,
+      width:  w,
+      height: h,
+      duration: 1,
+      ease: "power2.out"
+    }, 0);
   } else {
-    // If no animation or no timeline, just set it
+    console.log("[setHighlight] Setting highlight with gsap.set (no animation) …");
     gsap.set(highlight, { x, y, width: w, height: h });
   }
 }
 
-/*************************************************************
- * 4) animateHighlightToLink: loops over all .nav_wrappers
- *    to remove old .w--current and set/animate new highlight
- *************************************************************/
+/*****************************************************************
+ * 4) animateHighlightToLink: loops over all .nav_menu_wrap's
+ *****************************************************************/
 function animateHighlightToLink(tl, slug, highlightPadding = 8) {
-  // Remove old .w--current from all nav links (desktop + mobile)
-  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
+  console.log("[animateHighlightToLink] slug:", slug);
 
-  // For each .nav_wrapper, measure & animate the highlight
-  document.querySelectorAll(".nav_wrapper").forEach((wrapper) => {
-    setHighlight(tl, wrapper, slug, highlightPadding, true);
+  // Remove old .w--current
+  document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
+
+  // For each nav wrap
+  const allNavWraps = document.querySelectorAll(".nav_menu_wrap");
+  console.log("[animateHighlightToLink] .nav_menu_wrap elements found:", allNavWraps);
+
+  allNavWraps.forEach(navWrap => {
+    setHighlight(tl, navWrap, slug, highlightPadding, true);
   });
 }
 
-/*******************************************
- * 5) Barba hooks: fix container positioning
- *    + re-init Webflow after transitions
- *******************************************/
+/***********************************************
+ * 5) Barba Hooks
+ ***********************************************/
 barba.hooks.enter((data) => {
+  console.log("[barba.hooks.enter] Setting position: fixed on next.container");
   gsap.set(data.next.container, {
     position: "fixed",
     top: 0,
     left: 0,
-    width: "100%",
+    width: "100%"
   });
 });
+
 barba.hooks.after((data) => {
+  console.log("[barba.hooks.after] Setting position: relative on next.container");
   gsap.set(data.next.container, { position: "relative" });
   window.scrollTo(0, 0);
-
-  // Re-init Webflow
   resetWebflow(data);
 });
 
-/********************************************
- * 6) Barba transitions: slides left or right
- *    + animates the highlight link
- ********************************************/
+/***********************************************
+ * 6) Barba Transitions
+ ***********************************************/
 barba.init({
   preventRunning: true,
   transitions: [
@@ -145,58 +152,83 @@ barba.init({
       name: "directional-scroll",
       sync: true,
 
-      // Decide direction based on pageOrder indices
+      // Determine direction
       beforeLeave({ current, next }) {
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
+        console.log("[barba.beforeLeave] fromIndex:", fromIndex, "toIndex:", toIndex, "direction:", next.direction);
       },
 
       leave() {
-        // We'll handle the old container in the timeline
+        console.log("[barba.leave] We'll animate old container in timeline.");
       },
 
       enter({ current, next }) {
+        console.log("[barba.enter] Setting up container transitions…");
         const direction = next.direction;
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
-        // Animate old/new containers horizontally
+        // Slide old/new containers
         if (direction === "right") {
-          // old slides left
+          console.log("[barba.enter] Old slides left, new from right");
           tl.to(current.container, { x: "-100vw", duration: 2 }, 0);
-          // new slides in from right
           gsap.set(next.container, { x: "100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         } else {
-          // old slides right
+          console.log("[barba.enter] Old slides right, new from left");
           tl.to(current.container, { x: "100vw", duration: 2 }, 0);
-          // new slides in from left
           gsap.set(next.container, { x: "-100vw", zIndex: 10 });
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         }
 
-        // Animate highlight for the new link
+        // Animate highlight
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+        console.log("[barba.enter] Next slug:", slug);
         animateHighlightToLink(tl, slug, 8);
 
-        return tl; // Return timeline so Barba waits for it
-      },
-    },
-  ],
+        return tl;
+      }
+    }
+  ]
 });
 
-/*************************************************************
- * 7) DOMContentLoaded: on first load, set highlight
- *    with no animation for each .nav_wrapper
- *************************************************************/
+/***********************************************
+ * 7) DOMContentLoaded: partial highlight logic
+ ***********************************************/
 document.addEventListener("DOMContentLoaded", () => {
   const slug = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  console.log("[DOMContentLoaded] Current slug is:", slug);
 
-  // Remove any .w--current
-  document.querySelectorAll(".w--current").forEach((el) => el.classList.remove("w--current"));
+  // Remove any existing .w--current
+  document.querySelectorAll(".w--current").forEach(el => el.classList.remove("w--current"));
 
-  // For each .nav_wrapper, just position the highlight (no animation)
-  document.querySelectorAll(".nav_wrapper").forEach((wrapper) => {
-    setHighlight(null, wrapper, slug, 8, false);
+  // 7a) We'll highlight only the .is-desktop nav on load
+  console.log("[DOMContentLoaded] Setting highlight for .nav_menu_wrap.is-desktop");
+  document.querySelectorAll(".nav_menu_wrap.is-desktop").forEach(navWrap => {
+    setHighlight(null, navWrap, slug, 8, false);
   });
+
+  // 7b) Then we wait for the user to open the mobile nav
+  const mobileButton = document.querySelector(".nav_btn_wrap");
+  if (mobileButton) {
+    console.log("[DOMContentLoaded] Found .nav_btn_wrap. Adding click handler…");
+    mobileButton.addEventListener("click", () => {
+      console.log("[nav_btn_wrap] Clicked! We'll set mobile highlight…");
+      // Your code to reveal mobile nav goes here (or Webflow Interaction).
+      // Then measure highlight:
+      const mobileNavWrap = document.querySelector(".nav_menu_wrap.is-mobile");
+      if (mobileNavWrap) {
+        // If there's a transition for the menu opening, add a small delay:
+        setTimeout(() => {
+          console.log("[nav_btn_wrap] Setting highlight for mobile nav after open…");
+          setHighlight(null, mobileNavWrap, slug, 8, false);
+        }, 50);
+      } else {
+        console.warn("[nav_btn_wrap] .nav_menu_wrap.is-mobile not found in DOM!");
+      }
+    });
+  } else {
+    console.warn("[DOMContentLoaded] .nav_btn_wrap not found. Mobile menu won't be toggled here.");
+  }
 });
