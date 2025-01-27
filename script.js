@@ -81,7 +81,7 @@ function resetWebflow(data) {
   // Re-init Webflow
   if (window.Webflow) {
     // ***** IMPORTANT: comment out destroy() *****
-    // window.Webflow.destroy();
+    window.Webflow.destroy();
 
     console.log("[resetWebflow] window.Webflow found. Calling ready() + ix2.init()...");
     window.Webflow.ready();
