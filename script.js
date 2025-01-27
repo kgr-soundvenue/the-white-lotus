@@ -129,7 +129,7 @@ function animateHighlightToLink(tl, slug, highlightPadding = 8) {
  *******************************************/
 barba.hooks.enter(data => {
   gsap.set(data.next.container, {
-    position: "fixed",
+//    position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
@@ -171,7 +171,7 @@ barba.init({
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
         // Animate old/new containers horizontally
-        if (direction === "right") {
+        if (true || direction === "right") {
           // Old slides left
           tl.to(current.container, { x: "-100vw", duration: 2 }, 0);
 
