@@ -83,14 +83,14 @@ function resetWebflow(data) {
     const srcAttr = $this.attr("src");
 
     console.log("[resetWebflow] Re-injecting script:", srcAttr || "[inline code]");
-
+*/
     // Strip out any extra DOMContentLoaded wrapper if present
-    if (codeString.includes("DOMContentLoaded")) {
-      codeString = codeString
-        .replace(/window\.addEventListener\("DOMContentLoaded".*?\{\s*/, "")
-        .replace(/\s*\}\)\s*;\s*$/, "");
-    }
-
+//    if (codeString.includes("DOMContentLoaded")) {
+//      codeString = codeString
+//        .replace(/window\.addEventListener\("DOMContentLoaded".*?\{\s*/, "")
+//        .replace(/\s*\}\)\s*;\s*$/, "");
+//    }
+/*
     // Create a script in the document
     let script = document.createElement("script");
     script.type = "text/javascript";
