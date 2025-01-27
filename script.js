@@ -2,7 +2,7 @@
  * 1) Define page order for horizontal transitions (Test)
  *************************************************/
 const pageOrder = [
-  "residents",
+  "reception",
   "library",
   "meme-lounge",
   "poolside-pod",
