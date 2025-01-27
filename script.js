@@ -1,4 +1,4 @@
-console.log("Version 1.1.4");
+console.log("Version 1.1.5");
 function resetWebflow(data) {
   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
   // reset webflow interactions
@@ -44,10 +44,10 @@ barba.init({
       sync: true,
       enter(data) {
         console.log("Run GSAP Timeline");
-        /*let tl = gsap.timeline({ defaults: { duration: 1, ease: "power2.out" } });
+        let tl = gsap.timeline({ defaults: { duration: 1, ease: "power2.out" } });
         tl.to(data.current.container, { opacity: 0, scale: 0.9 });
         tl.from(data.next.container, { y: "100vh" }, "<");
-        return tl;*/
+        return tl;
       }
     }
   ]
