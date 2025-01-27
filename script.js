@@ -43,10 +43,10 @@ barba.init({
     {
       sync: true,
       enter(data) {
-        let tl = gsap.timeline({ defaults: { duration: 1, ease: "power2.out" } });
+        /*let tl = gsap.timeline({ defaults: { duration: 1, ease: "power2.out" } });
         tl.to(data.current.container, { opacity: 0, scale: 0.9 });
         tl.from(data.next.container, { y: "100vh" }, "<");
-        return tl;
+        return tl;*/
       }
     }
   ]
