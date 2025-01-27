@@ -1,5 +1,7 @@
+console.log("Version 0.1");
+
 /*************************************************
- * 1) Define page order for horizontal transitions (Test)
+ * 1) Define page order for horizontal transitions 
  *************************************************/
 const pageOrder = [
   "reception",
