@@ -1,4 +1,6 @@
+/*
 function resetWebflow(data) {
+  console.log("resetWebFlow");
   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
   // reset webflow interactions
   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
@@ -50,3 +52,4 @@ barba.init({
     }
   ]
 });
+*/
