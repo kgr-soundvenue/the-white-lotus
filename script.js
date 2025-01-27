@@ -1,4 +1,4 @@
-console.log("Version 0.1.1");
+console.log("Version 0.1.2");
 
 /*************************************************
  * 1) Define page order for horizontal transitions 
