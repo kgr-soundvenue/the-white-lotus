@@ -1,4 +1,4 @@
-console.log("v1.1.2");
+console.log("v1.1.4");
 
 /*************************************************
  * 1) Define page order for horizontal transitions
@@ -202,8 +202,8 @@ barba.init({
         }
 
         // Animate highlight for the new link
-        //const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-        //animateHighlightToLink(tl, slug, 8);
+        const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+        animateHighlightToLink(tl, slug, 8);
 
         // Return the timeline so Barba waits for it
         return tl;
