@@ -145,6 +145,7 @@ barba.hooks.enter(data => {
 });
 
 barba.hooks.after(data => {
+  console.log("After: " + data.current.url.path + " -> " + data.next.url.path);
   gsap.set(data.next.container, { position: "relative" });
   window.scrollTo(0, 0);
 
@@ -165,6 +166,7 @@ barba.init({
 
       // Decide direction based on pageOrder indices
       beforeLeave({ current, next }) {
+        console.log("BeforeLeave: " + current.url.path + " -> " + next.url.path);
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
@@ -175,11 +177,13 @@ barba.init({
       },
 
       enter({ current, next }) {
+        console.log("Enter: " + current.url.path + " -> " + next.url.path);
+        
         const direction = next.direction;
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
         // Animate old/new containers horizontally
-        if (true && direction === "right") {
+        if (direction === "right") {
           // Old slides left
             gsap.set(current.container, { zIndex: 9 });
           tl.to(current.container, { x: "-100vw", duration: 2 }, 0);
@@ -198,8 +202,8 @@ barba.init({
         }
 
         // Animate highlight for the new link
-        const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-        animateHighlightToLink(tl, slug, 8);
+        //const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+        //animateHighlightToLink(tl, slug, 8);
 
         // Return the timeline so Barba waits for it
         return tl;
