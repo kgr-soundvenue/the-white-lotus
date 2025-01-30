@@ -1,6 +1,26 @@
 console.log("v1.1.6");
 
 
+function showMenuMobile(){
+  window.mobileMenuWrap.slideDown(500);
+}
+
+function hideMenuMobile(){
+  window.mobileMenuWrap.slideUp(500);
+}
+
+window.mobileMenuWrap = $('.nav_menu_wrap.is-mobile');
+
+//Set mobile menu button
+$('.menu_button').click(function(){
+  
+  // Hvis elementet er skjult, slidedown, ellers slideup
+  if (window.mobileMenuWrap.is(':hidden')) {
+    showMenuMobile();
+  } else {
+    hideMenuMobile();
+  }
+});
 
 /*************************************************
  * 1) Define page order for horizontal transitions
@@ -145,6 +165,7 @@ if (navWrapContainerIsHidden) {
         height: h,
         duration: 1,     // Adjust to match your transition duration
         ease: "power2.out",
+        
       },
       0
     );
