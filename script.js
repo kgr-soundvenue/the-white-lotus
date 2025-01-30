@@ -1,4 +1,9 @@
-console.log("v1.1.4");
+console.log("v1.1.5");
+
+//Set mobile menu button
+$('.menu_button').click(function(){
+  $(this).closest('.nav_container').find('.nav_menu_wrap').toggle();
+});
 
 /*************************************************
  * 1) Define page order for horizontal transitions
