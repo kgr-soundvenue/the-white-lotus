@@ -1,9 +1,6 @@
-console.log("v1.1.5");
+console.log("v1.1.6");
 
-//Set mobile menu button
-$('.menu_button').click(function(){
-  $(this).closest('.nav_container').find('.nav_menu_wrap').toggle();
-});
+
 
 /*************************************************
  * 1) Define page order for horizontal transitions
@@ -73,6 +70,36 @@ function resetWebflow(data) {
  *    .nav_menu_wrap for a given slug
  **************************************************************/
 function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
+  console.log(navWrap);
+
+  var navWrapJQ = $(navWrap);
+  var navWrapContainerJQ = navWrapJQ.closest('.nav')
+  var navWrapIsHidden = false;
+  var navWrapContainerIsHidden = false;
+  //Check if navWrap is display none.
+  if (navWrapJQ.css('display') === 'none'){
+     navWrapIsHidden = true;
+  }
+  
+  //Check if navWrap is display none.
+  if (navWrapContainerJQ.closest('.nav').css('display') === 'none'){
+     navWrapContainerIsHidden = true;
+  }
+
+  console.log("navWrapIsHidden: ", navWrapIsHidden);
+  console.log("navWrapContainerIsHidden: ", navWrapContainerIsHidden);
+//Hvis navWrap eller Container er skjult, skal vi lave det om til visibility hidden for at kunne beregne størrelsen.
+if (navWrapIsHidden) {
+  console.log("Setting navWrap to hidden");
+  navWrapJQ.css({'display': 'block', 'visibility': 'hidden'});
+}
+
+if (navWrapContainerIsHidden) {
+    console.log("Setting navWrapContainer to hidden");
+  navWrapContainerJQ.css({'display': 'block','visibility': 'hidden'});
+}
+
+    
   // 1) Find the highlight & matching link in *this* navWrap
   const highlight = navWrap.querySelector(".nav-highlight");
   const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
@@ -92,6 +119,21 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
   const w = linkRect.width  + highlightPadding * 2;
   const h = linkRect.height + highlightPadding * 2;
 
+    console.log(x,y,w,h);
+
+//Hvis navWrap eller Container er skjult, har vi lavet det om til visibility hidden for at kunne beregne størrelsen og skal nu reverse det.
+if (navWrapIsHidden) {
+  console.log("Setting navWrap back to display none");
+  navWrapJQ.css({'visibility': '', 'display': 'none'});
+}
+
+if (navWrapContainerIsHidden) {
+    console.log("Setting navWrap container back to display none");
+  navWrapContainerJQ.css({'visibility': '', 'display': 'none'});
+}
+
+
+    
   // 4) Either animate inside GSAP timeline or just set immediately
   if (animate && tl) {
     tl.to(
@@ -111,6 +153,7 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
     gsap.set(highlight, { x, y, width: w, height: h });
   }
 }
+
 
 /*************************************************************
  * 4) animateHighlightToLink: loops over all .nav_menu_wraps
