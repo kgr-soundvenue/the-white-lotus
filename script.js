@@ -1,4 +1,4 @@
-console.log("v1.1.7");
+console.log("v1.1.8");
 
 
 function showMenuMobile(){
@@ -64,11 +64,14 @@ function resetWebflow(data) {
 
   // reset scripts
   dom.find("[data-barba-script]").each(function () {
+    console.log("running data-barba-script t.ricks function #A");
     let codeString = $(this).text();
     if (codeString.includes("DOMContentLoaded")) {
+      console.log("running data-barba-script t.ricks function #B (DOMContentLoaded)");
       let newCodeString = codeString.replace(/window\.addEventListener\("DOMContentLoaded",\s*\(\s*event\s*\)\s*=>\s*{\s*/, "");
       codeString = newCodeString.replace(/\s*}\s*\);\s*$/, "");
     }
+    console.log("running data-barba-script t.ricks function #C - ", codeString);    
     let script = document.createElement("script");
     script.type = "text/javascript";
     if ($(this).attr("src")) script.src = $(this).attr("src");
