@@ -1,4 +1,4 @@
-console.log("v1.1.21");
+console.log("v1.1.22");
 
 
 function showMenuMobile(){
@@ -288,7 +288,7 @@ barba.init({
           tl.to(current.container, {
             opacity: 0,
             scale: 1.5, // Scale up to 150%
-            duration: 1.5,
+            duration: 5,
             ease: "power2.out" // Smooth easing
           });
 
@@ -302,7 +302,7 @@ barba.init({
           // Fade in the next container
           tl.to(next.container, {
             opacity: 1,
-            duration: 1.5
+            duration: 5
           });
 
           // Animate highlight for the new link
