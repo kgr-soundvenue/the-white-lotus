@@ -1,4 +1,4 @@
-console.log("v1.1.16");
+console.log("v1.1.17");
 
 
 function showMenuMobile(){
@@ -275,6 +275,29 @@ barba.init({
   preventRunning: true,
   transitions: [
     {
+      name: "welcome",
+      sync: true,
+      from: { namespace: ['welcome'] },
+      // Decide direction based on pageOrder indices
+      leave({ current }) {
+          // Scale up and fade out the current container
+          return gsap.to(current.container, {
+            opacity: 0,
+            scale: 1.5, // Scale up to 150%
+            duration: 2,
+            ease: "power2.out" // Smooth easing
+          });
+        },
+        enter({ next }) {
+          // Fade in the next container
+          gsap.set(next.container, { opacity: 0 });
+          return gsap.to(next.container, {
+            opacity: 1,
+            duration: 2
+          });
+        },
+    },
+    {
       name: "directional-scroll",
       sync: true,
 
@@ -284,10 +307,6 @@ barba.init({
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
-      },
-
-      leave() {
-        // We'll handle the old container in the timeline
       },
 
       enter({ current, next }) {
@@ -325,7 +344,7 @@ barba.init({
         // Return the timeline so Barba waits for it
         return tl;
       },
-    },
+    },    
   ],
 });
 
