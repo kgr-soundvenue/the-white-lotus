@@ -1,4 +1,4 @@
-console.log("v1.1.10");
+console.log("v1.1.11");
 
 
 function showMenuMobile(){
@@ -105,16 +105,43 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 
   console.log("navWrapIsHidden: ", navWrapIsHidden);
   console.log("navWrapContainerIsHidden: ", navWrapContainerIsHidden);
-//Hvis navWrap eller Container er skjult, skal vi lave det om til visibility hidden for at kunne beregne størrelsen.
-if (navWrapIsHidden) {
-  console.log("Setting navWrap to hidden");
-  navWrapJQ.css({'display': 'block !important', 'visibility': 'hidden'});
-}
+    //Hvis navWrap eller Container er skjult, skal vi lave det om til visibility hidden for at kunne beregne størrelsen.
+    const navWrapEl = navWrapJQ.get(0);
+    // Gem de oprindelige inline-styles, hvis du har brug for at genskabe dem nøjagtigt
+      const originalDisplayWrap  = navWrapEl.style.display;
+      const originalPositionWrap = navWrapEl.style.position;
+      const originalTopWrap      = navWrapEl.style.top;
+      const originalLeftWrap     = navWrapEl.style.left;
+  
+    if (navWrapIsHidden) {
+        console.log("Setting navWrap to hidden");
+               
+      
+        // Sæt elementet til at blive vist off-screen
+        navWrapEl.style.setProperty('display', 'block', 'important');
+        navWrapEl.style.setProperty('position', 'absolute', 'important');
+        navWrapEl.style.setProperty('top', '-9999px', 'important');
+        navWrapEl.style.setProperty('left', '-9999px', 'important');
+    
+    }
 
-if (navWrapContainerIsHidden) {
-    console.log("Setting navWrapContainer to hidden");
-  navWrapContainerJQ.css({'display': 'block !important','visibility': 'hidden'});
-}
+    const navWrapContainerEl = navWrapContainerJQ.get(0);
+    const originalDisplayContainer  = navWrapContainerEl.style.display;
+    const originalPositionContainer = navWrapContainerEl.style.position;
+    const originalTopContainer      = navWrapContainerEl.style.top;
+    const originalLeftContainer     = navWrapContainerEl.style.left;
+        
+    if (navWrapContainerIsHidden) {
+        console.log("Setting navWrapContainer to hidden");
+        
+
+        navWrapContainerEl.style.setProperty('display', 'block', 'important');
+        navWrapContainerEl.style.setProperty('position', 'absolute', 'important');
+        navWrapContainerEl.style.setProperty('top', '-9999px', 'important');
+        navWrapContainerEl.style.setProperty('left', '-9999px', 'important');
+    
+    }
+
 
     
   // 1) Find the highlight & matching link in *this* navWrap
@@ -141,12 +168,18 @@ if (navWrapContainerIsHidden) {
 //Hvis navWrap eller Container er skjult, har vi lavet det om til visibility hidden for at kunne beregne størrelsen og skal nu reverse det.
 if (navWrapIsHidden) {
   console.log("Setting navWrap back to display none");
-  navWrapJQ.css({'visibility': '', 'display': 'none'});
+  navWrapEl.style.setProperty('display', originalDisplayWrap || 'none', 'important');
+  navWrapEl.style.position = originalPositionWrap;
+  navWrapEl.style.top      = originalTopWrap;
+  navWrapEl.style.left     = originalLeftWrap;
 }
 
 if (navWrapContainerIsHidden) {
     console.log("Setting navWrap container back to display none");
-  navWrapContainerJQ.css({'visibility': '', 'display': 'none'});
+  navWrapContainerEl.style.setProperty('display', originalDisplayContainer || 'none', 'important');
+  navWrapContainerEl.style.position = originalPositionContainer;
+  navWrapContainerEl.style.top      = originalTopContainer;
+  navWrapContainerEl.style.left     = originalLeftContainer;
 }
 
 
