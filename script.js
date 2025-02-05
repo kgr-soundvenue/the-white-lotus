@@ -1,4 +1,4 @@
-console.log("v1.1.25");
+console.log("v1.1.26");
 
 
 function showMenuMobile(){
@@ -292,14 +292,14 @@ barba.init({
           tl.to(current.container, {
             opacity: 0,
             scale: 1.5,
-            duration: 5
+            duration: 2
           });
       
           // Animer next container ind (fade in)
           tl.to(next.container, {
             opacity: 1,
-            duration: 5
-          });
+            duration: 2
+          }, "-=0.5");
       
           // Ekstra animation: fremhævning af et link baseret på slug
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
