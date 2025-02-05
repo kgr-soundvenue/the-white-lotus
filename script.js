@@ -1,4 +1,4 @@
-console.log("v1.1.24");
+console.log("v1.1.25");
 
 
 function showMenuMobile(){
@@ -304,7 +304,8 @@ barba.init({
           // Ekstra animation: fremhævning af et link baseret på slug
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
           animateHighlightToLink(tl, slug, 8);
-        
+
+          return tl;
       }
       
 /*
