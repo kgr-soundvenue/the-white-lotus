@@ -1,4 +1,4 @@
-console.log("v1.1.11");
+console.log("v1.1.13");
 
 
 function showMenuMobile(){
@@ -109,6 +109,7 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
     const navWrapEl = navWrapJQ.get(0);
     // Gem de oprindelige inline-styles, hvis du har brug for at genskabe dem nøjagtigt
       const originalDisplayWrap  = navWrapEl.style.display;
+      const originalDisplayWrapPriority = navWrapEl.style.getPropertyPriority('display');
       const originalPositionWrap = navWrapEl.style.position;
       const originalTopWrap      = navWrapEl.style.top;
       const originalLeftWrap     = navWrapEl.style.left;
@@ -127,6 +128,7 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 
     const navWrapContainerEl = navWrapContainerJQ.get(0);
     const originalDisplayContainer  = navWrapContainerEl.style.display;
+    const originalDisplayContainerPriority = navWrapContainerEl.style.getPropertyPriority('display');
     const originalPositionContainer = navWrapContainerEl.style.position;
     const originalTopContainer      = navWrapContainerEl.style.top;
     const originalLeftContainer     = navWrapContainerEl.style.left;
@@ -168,7 +170,7 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 //Hvis navWrap eller Container er skjult, har vi lavet det om til visibility hidden for at kunne beregne størrelsen og skal nu reverse det.
 if (navWrapIsHidden) {
   console.log("Setting navWrap back to display none");
-  navWrapEl.style.setProperty('display', originalDisplayWrap || 'none', 'important');
+  navWrapEl.style.setProperty('display', originalDisplayWrap || 'none', originalDisplayWrapPriority);
   navWrapEl.style.position = originalPositionWrap;
   navWrapEl.style.top      = originalTopWrap;
   navWrapEl.style.left     = originalLeftWrap;
@@ -176,7 +178,7 @@ if (navWrapIsHidden) {
 
 if (navWrapContainerIsHidden) {
     console.log("Setting navWrap container back to display none");
-  navWrapContainerEl.style.setProperty('display', originalDisplayContainer || 'none', 'important');
+  navWrapContainerEl.style.setProperty('display', originalDisplayContainer || 'none', originalDisplayContainerPriority);
   navWrapContainerEl.style.position = originalPositionContainer;
   navWrapContainerEl.style.top      = originalTopContainer;
   navWrapContainerEl.style.left     = originalLeftContainer;
