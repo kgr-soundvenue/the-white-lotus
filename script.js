@@ -1,4 +1,4 @@
-console.log("v1.1.23");
+console.log("v1.1.24");
 
 
 function showMenuMobile(){
@@ -279,8 +279,37 @@ barba.init({
       sync: true,
       from: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
-     leave({ current, next }) {
-          return new Promise(resolve => {
+      leave({ current, next }) {
+        
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.out" },
+          });
+
+          // Forbered next container
+          tl.set(next.container, { opacity: 0 });
+        
+          // Animer current container ud (fade out og zoom ud)
+          tl.to(current.container, {
+            opacity: 0,
+            scale: 1.5,
+            duration: 5
+          });
+      
+          // Animer next container ind (fade in)
+          tl.to(next.container, {
+            opacity: 1,
+            duration: 5
+          });
+      
+          // Ekstra animation: fremhævning af et link baseret på slug
+          const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+          animateHighlightToLink(tl, slug, 8);
+        
+      }
+      
+/*
+      leave({ current, next }) {
+          
             const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
             
             // Sørg for, at next containeren er usynlig fra starten
@@ -292,9 +321,8 @@ barba.init({
               scale: 1.5,
               duration: 5,
               ease: "power2.out",
-              onComplete: resolve  // Når animationen er færdig, kaldes resolve()
             });
-          });
+          
         },
         
         enter({ next }) {
@@ -312,7 +340,7 @@ barba.init({
           
           return tl;
         },
-
+*/
     },
     {
       name: "directional-scroll",
