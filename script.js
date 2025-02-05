@@ -1,4 +1,4 @@
-console.log("v1.1.20");
+console.log("v1.1.21");
 
 
 function showMenuMobile(){
@@ -279,32 +279,37 @@ barba.init({
       sync: true,
       from: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
-      leave({ current }) {
+      leave({ current,next }) {
+          const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+          
+          tl.set(next.container, { opacity: 0 });
+          
           // Scale up and fade out the current container
-          return gsap.to(current.container, {
+          tl.to(current.container, {
             opacity: 0,
             scale: 1.5, // Scale up to 150%
-            duration: 2,
+            duration: 1.5,
             ease: "power2.out" // Smooth easing
           });
+
+          return tl;
         },
         enter({ next }) {
           
-          //const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+          const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
           
-         /*
+         
           // Fade in the next container
-          tl.set(next.container, { opacity: 0 });
           tl.to(next.container, {
             opacity: 1,
-            duration: 2
+            duration: 1.5
           });
-*/
+
           // Animate highlight for the new link
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-          animateHighlightToLink(null, slug, 8);
+          animateHighlightToLink(tl, slug, 8);
             
-          //return tl;
+          return tl;
         },
     },
     {
