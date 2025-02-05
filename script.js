@@ -1,4 +1,4 @@
-console.log("v1.1.13");
+console.log("v1.1.14");
 
 
 function showMenuMobile(){
@@ -170,7 +170,11 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 //Hvis navWrap eller Container er skjult, har vi lavet det om til visibility hidden for at kunne beregne størrelsen og skal nu reverse det.
 if (navWrapIsHidden) {
   console.log("Setting navWrap back to display none");
-  navWrapEl.style.setProperty('display', originalDisplayWrap || 'none', originalDisplayWrapPriority);
+  if (originalDisplayWrap) {
+    navWrapEl.style.setProperty('display', originalDisplayWrap, originalDisplayWrapPriority);
+  } else {
+    navWrapEl.style.removeProperty('display');
+  }
   navWrapEl.style.position = originalPositionWrap;
   navWrapEl.style.top      = originalTopWrap;
   navWrapEl.style.left     = originalLeftWrap;
@@ -178,7 +182,11 @@ if (navWrapIsHidden) {
 
 if (navWrapContainerIsHidden) {
     console.log("Setting navWrap container back to display none");
-  navWrapContainerEl.style.setProperty('display', originalDisplayContainer || 'none', originalDisplayContainerPriority);
+    if (originalDisplayContainer) {
+      navWrapContainerEl.style.setProperty('display', originalDisplayContainer, originalDisplayContainerPriority);
+    } else {
+      navWrapContainerEl.style.removeProperty('display');
+    }
   navWrapContainerEl.style.position = originalPositionContainer;
   navWrapContainerEl.style.top      = originalTopContainer;
   navWrapContainerEl.style.left     = originalLeftContainer;
