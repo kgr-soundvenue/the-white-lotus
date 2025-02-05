@@ -1,4 +1,4 @@
-console.log("v1.1.8");
+console.log("v1.1.9");
 
 
 function showMenuMobile(){
@@ -270,7 +270,7 @@ barba.init({
         animateHighlightToLink(tl, slug, 8);
 
         //Hide the mobile menu
-        setTimeout(function(){hideMenuMobile();}, 1700);
+        setTimeout(function(){hideMenuMobile();}, 1400);
         
         // Return the timeline so Barba waits for it
         return tl;
