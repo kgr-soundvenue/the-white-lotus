@@ -1,4 +1,4 @@
-console.log("v1.1.9");
+console.log("v1.1.10");
 
 
 function showMenuMobile(){
@@ -92,12 +92,14 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
   var navWrapIsHidden = false;
   var navWrapContainerIsHidden = false;
   //Check if navWrap is display none.
-  if (navWrapJQ.css('display') === 'none'){
+  //if (navWrapJQ.css('display') === 'none'){
+  if (navWrapJQ.is(':hidden')){
      navWrapIsHidden = true;
   }
   
   //Check if navWrap is display none.
-  if (navWrapContainerJQ.closest('.nav').css('display') === 'none'){
+  //if (navWrapContainerJQ.closest('.nav').css('display') === 'none'){
+  if (navWrapContainerJQ.closest('.nav').is(':hidden')){
      navWrapContainerIsHidden = true;
   }
 
@@ -106,12 +108,12 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 //Hvis navWrap eller Container er skjult, skal vi lave det om til visibility hidden for at kunne beregne størrelsen.
 if (navWrapIsHidden) {
   console.log("Setting navWrap to hidden");
-  navWrapJQ.css({'display': 'block', 'visibility': 'hidden'});
+  navWrapJQ.css({'display': 'block !important', 'visibility': 'hidden'});
 }
 
 if (navWrapContainerIsHidden) {
     console.log("Setting navWrapContainer to hidden");
-  navWrapContainerJQ.css({'display': 'block','visibility': 'hidden'});
+  navWrapContainerJQ.css({'display': 'block !important','visibility': 'hidden'});
 }
 
     
