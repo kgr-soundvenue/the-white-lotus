@@ -1,4 +1,4 @@
-console.log("v1.1.17");
+console.log("v1.1.18");
 
 
 function showMenuMobile(){
@@ -289,6 +289,10 @@ barba.init({
           });
         },
         enter({ next }) {
+          // Animate highlight for the new link
+          const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+          animateHighlightToLink(tl, slug, 8);
+            
           // Fade in the next container
           gsap.set(next.container, { opacity: 0 });
           return gsap.to(next.container, {
