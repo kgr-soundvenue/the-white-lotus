@@ -1,4 +1,4 @@
-console.log("v1.1.15");
+console.log("v1.1.16");
 
 
 function showMenuMobile(){
@@ -90,6 +90,15 @@ function resetWebflow(data) {
 function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
   console.log(navWrap);
 
+
+  // 1) Find the highlight & matching link in *this* navWrap
+  const highlight = navWrap.querySelector(".nav-highlight");
+  const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
+
+  // If missing either highlight or link, skip
+  if (!highlight || !newLink){ console.log("Skip highlight - no highlight div or slug not in menu."); return; }
+
+  
   var navWrapJQ = $(navWrap);
   var navWrapContainerJQ = navWrapJQ.closest('.nav')
   var navWrapIsHidden = false;
@@ -149,13 +158,6 @@ function setHighlight(tl, navWrap, slug, highlightPadding = 8, animate = true) {
 
 
     
-  // 1) Find the highlight & matching link in *this* navWrap
-  const highlight = navWrap.querySelector(".nav-highlight");
-  const newLink   = navWrap.querySelector(`.nav_menu_list .nav_menu_link[href="/${slug}"]`);
-
-  // If missing either highlight or link, skip
-  if (!highlight || !newLink) return;
-
   // 2) Mark the link as current
   newLink.classList.add("w--current");
 
