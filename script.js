@@ -1,4 +1,4 @@
-console.log("v1.1.6");
+console.log("v1.1.7");
 
 
 function showMenuMobile(){
@@ -62,24 +62,16 @@ function resetWebflow(data) {
     window.Webflow.require("ix2").init();
   }
 
-  // Optionally re-inject scripts
+  // reset scripts
   dom.find("[data-barba-script]").each(function () {
     let codeString = $(this).text();
-
-    // Strip out any extra DOMContentLoaded wrapper if present
     if (codeString.includes("DOMContentLoaded")) {
-      codeString = codeString.replace(
-        /window\.addEventListener\("DOMContentLoaded".*?\{\s*/,
-        ""
-      ).replace(/\s*\}\)\s*;\s*$/, "");
+      let newCodeString = codeString.replace(/window\.addEventListener\("DOMContentLoaded",\s*\(\s*event\s*\)\s*=>\s*{\s*/, "");
+      codeString = newCodeString.replace(/\s*}\s*\);\s*$/, "");
     }
-
-    // Create a script in the document
     let script = document.createElement("script");
     script.type = "text/javascript";
-    if ($(this).attr("src")) {
-      script.src = $(this).attr("src");
-    }
+    if ($(this).attr("src")) script.src = $(this).attr("src");
     script.text = codeString;
     document.body.appendChild(script).remove();
   });
