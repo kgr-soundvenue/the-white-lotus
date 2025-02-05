@@ -269,6 +269,9 @@ barba.init({
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
         animateHighlightToLink(tl, slug, 8);
 
+        //Hide the mobile menu
+        setTimeout(function(){hideMenuMobile();}, 1700);
+        
         // Return the timeline so Barba waits for it
         return tl;
       },
