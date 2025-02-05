@@ -1,4 +1,4 @@
-console.log("v1.1.14");
+console.log("v1.1.15");
 
 
 function showMenuMobile(){
@@ -25,13 +25,16 @@ $('.menu_button').click(function(){
 /*************************************************
  * 1) Define page order for horizontal transitions
  *************************************************/
-const pageOrder = [
+/*const pageOrder = [
   "reception",
   "library",
   "meme-lounge",
   "poolside-pod",
   "gift-shop",
-];
+];*/
+const pageOrder = $('.nav.is-desktop .nav_menu_list li:not([class*="is-hidden"]) a')
+  .map((i, el) => $(el).attr('href').replace(/^\//, ''))
+  .get();
 
 /**
  * A helper to get the page index for a given slug.
