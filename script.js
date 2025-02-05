@@ -1,4 +1,4 @@
-console.log("v1.1.19");
+console.log("v1.1.20");
 
 
 function showMenuMobile(){
@@ -289,21 +289,22 @@ barba.init({
           });
         },
         enter({ next }) {
-          const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
           
-         
+          //const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+          
+         /*
           // Fade in the next container
           tl.set(next.container, { opacity: 0 });
           tl.to(next.container, {
             opacity: 1,
             duration: 2
           });
-
+*/
           // Animate highlight for the new link
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-          animateHighlightToLink(tl, slug, 8);
+          animateHighlightToLink(null, slug, 8);
             
-          return tl;
+          //return tl;
         },
     },
     {
