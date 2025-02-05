@@ -1,4 +1,4 @@
-console.log("v1.1.22");
+console.log("v1.1.23");
 
 
 function showMenuMobile(){
@@ -279,38 +279,40 @@ barba.init({
       sync: true,
       from: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
-      leave({ current,next }) {
-          const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-          
-          tl.set(next.container, { opacity: 0 });
-          
-          // Scale up and fade out the current container
-          tl.to(current.container, {
-            opacity: 0,
-            scale: 1.5, // Scale up to 150%
-            duration: 5,
-            ease: "power2.out" // Smooth easing
+     leave({ current, next }) {
+          return new Promise(resolve => {
+            const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+            
+            // Sørg for, at next containeren er usynlig fra starten
+            tl.set(next.container, { opacity: 0 });
+            
+            // Animer current containeren (f.eks. fade out og scale op)
+            tl.to(current.container, {
+              opacity: 0,
+              scale: 1.5,
+              duration: 5,
+              ease: "power2.out",
+              onComplete: resolve  // Når animationen er færdig, kaldes resolve()
+            });
           });
-
-          return tl;
         },
+        
         enter({ next }) {
-          
           const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
           
-         
-          // Fade in the next container
+          // Fade ind next container
           tl.to(next.container, {
             opacity: 1,
             duration: 5
           });
-
-          // Animate highlight for the new link
+        
+          // Eksempel på en ekstra animation (f.eks. fremhævning af et link)
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
           animateHighlightToLink(tl, slug, 8);
-            
+          
           return tl;
         },
+
     },
     {
       name: "directional-scroll",
