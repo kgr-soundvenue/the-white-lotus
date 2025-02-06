@@ -1,4 +1,4 @@
-console.log("v1.1.30");
+console.log("v1.1.31");
 
 
 function showMenuMobile(){
@@ -280,7 +280,7 @@ barba.init({
       from: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
       leave({ current, next }) {
-        
+          console.log("Leave() - Welcome");
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
           });
@@ -314,6 +314,8 @@ barba.init({
       to: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
       leave({ current, next }) {
+          console.log("Leave() - Welcome - Back");  
+        
           //Forberedt next container (welcome)
           $(next.container).find('img[data-w-id="7efcec14-de9c-97bd-45f6-0b7aea23d931"]').css("opacity", "0");
           $(next.container).find('div[data-w-id="21e3c9d2-bca7-143d-dfa7-45ae4004158c"]').css("opacity", "1");
