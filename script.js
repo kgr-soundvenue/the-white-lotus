@@ -1,4 +1,4 @@
-console.log("v1.1.28");
+console.log("v1.1.29");
 
 
 function showMenuMobile(){
