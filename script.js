@@ -1,4 +1,4 @@
-console.log("v1.1.26");
+console.log("v1.1.27");
 
 
 function showMenuMobile(){
@@ -275,7 +275,7 @@ barba.init({
   preventRunning: true,
   transitions: [
     {
-      name: "welcome",
+      name: "welcome to reception",
       sync: true,
       from: { namespace: ['welcome'] },
       // Decide direction based on pageOrder indices
@@ -307,42 +307,41 @@ barba.init({
 
           return tl;
       }
-      
-/*
+    },
+    {
+      name: "back to welcome",
+      sync: true,
+      to: { namespace: ['welcome'] },
+      // Decide direction based on pageOrder indices
       leave({ current, next }) {
-          
-            const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-            
-            // Sørg for, at next containeren er usynlig fra starten
-            tl.set(next.container, { opacity: 0 });
-            
-            // Animer current containeren (f.eks. fade out og scale op)
-            tl.to(current.container, {
-              opacity: 0,
-              scale: 1.5,
-              duration: 5,
-              ease: "power2.out",
-            });
-          
-        },
-        
-        enter({ next }) {
-          const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-          
-          // Fade ind next container
+          //Forberedt next container (welcome)
+          $(next.container).find('img[data-w-id="7efcec14-de9c-97bd-45f6-0b7aea23d931"]').css("opacity", "0");
+          $(next.container).find('div[data-w-id="21e3c9d2-bca7-143d-dfa7-45ae4004158c"]').css("opacity", "1");
+          $(next.container).find('div[data-w-id="7c3139a4-4515-7563-c182-6e64cb681d97"]').css("opacity", "1");
+
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.out" },
+          });
+
+          // Animer current container ud (fade out)
           tl.to(next.container, {
-            opacity: 1,
-            duration: 5
+            opacity: 0,
+            duration: 2
           });
         
-          // Eksempel på en ekstra animation (f.eks. fremhævning af et link)
-          const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-          animateHighlightToLink(tl, slug, 8);
-          
+          // Forbered next container
+          tl.set(next.container, { opacity: 0 });
+        
+          // Animer next container ind (fade in og zoom in)
+          tl.to(current.container, {
+            opacity: 1,
+            scale: 1,
+            duration: 2
+          }, "-=0.5");
+      
           return tl;
-        },
-*/
-    },
+      }
+    },    
     {
       name: "directional-scroll",
       sync: true,
