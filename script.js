@@ -1,4 +1,4 @@
-console.log("v1.1.32");
+console.log("v1.1.33");
 
 
 function showMenuMobile(){
@@ -278,7 +278,7 @@ barba.init({
       name: "welcome to reception",
       sync: true,
       from: { namespace: ['welcome'] },
-      // Decide direction based on pageOrder indices
+      
       leave({ current, next }) {
           console.log("Leave() - Welcome");
           const tl = gsap.timeline({
@@ -312,13 +312,13 @@ barba.init({
       name: "back to welcome",
       sync: true,
       to: { namespace: ['welcome'] },
-      // Decide direction based on pageOrder indices
+      
       leave({ current, next }) {
           console.log("Leave() - Welcome - Back");  
         
           //Forberedt next container (welcome)
-          $('div.intro_container.is-01').css("opacity", "0");
-          $('div.intro_container.is-02').css("opacity", "1");
+          $(next.container).find('div.intro_container.is-01').css("opacity", "0");
+          $(next.container).find('div.intro_container.is-02').css("opacity", "1");
 
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
@@ -331,7 +331,7 @@ barba.init({
           });
         
           // Forbered next container
-          tl.set(next.container, { opacity: 0 });
+          tl.set(next.container, { opacity: 0, scale: 1.5});
         
           // Animer next container ind (fade in og zoom in)
           tl.to(next.container, {
