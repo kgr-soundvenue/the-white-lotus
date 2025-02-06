@@ -49,10 +49,10 @@ function getPageIndex(urlString) {
  *    - re-init interactions
  *    - skip .w--current re-assignment (we handle that)
  *****************************************************/
-function resetWebflow(data) {
+function resetWebflow(next) {
   // Convert the next page's HTML to a DOM, grab its <html> node
   let dom = $(new DOMParser()
-    .parseFromString(data.next.html, "text/html"))
+    .parseFromString(next.html, "text/html"))
     .find("html");
 
   // Sync the data-wf-page
@@ -243,28 +243,27 @@ function animateHighlightToLink(tl, slug, highlightPadding = 8) {
  * 5) Barba hooks: fix container positioning
  *    + re-init Webflow after transitions
  *******************************************/
-barba.hooks.enter(data => {
-  gsap.set(data.next.container, {
+function nextBefore(next){
+  gsap.set(next.container, {
     position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
   });
-  /*gsap.set(data.current.container, {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-  });    */
-});
+
+}
+
+function nextAfter(next, boolResetWebflow){
+  gsap.set(next.container, { position: "relative" });
+  window.scrollTo(0, 0);
+
+  if(boolResetWebflow){
+    resetWebflow(next);
+  }
+}
 
 barba.hooks.after(data => {
   console.log("After: " + data.current.url.path + " -> " + data.next.url.path);
-  gsap.set(data.next.container, { position: "relative" });
-  window.scrollTo(0, 0);
-
-  // Re-init Webflow
-  resetWebflow(data);
 });
 
 /********************************************
@@ -279,8 +278,17 @@ barba.init({
       sync: true,
       from: { namespace: ['welcome'] },
       
+      enter({ current, next }) {
+        nextBefore(next);
+      },
+      after({ current, next }) {
+        nextAfter(next, true);
+      },
       leave({ current, next }) {
           console.log("Leave() - Welcome");
+
+          
+
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
           });
@@ -305,6 +313,7 @@ barba.init({
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
           animateHighlightToLink(tl, slug, 8);
 
+
           return tl;
       }
     },
@@ -312,10 +321,16 @@ barba.init({
       name: "back to welcome",
       sync: true,
       to: { namespace: ['welcome'] },
-      
+      enter({ current, next }) {
+        nextBefore(next);
+      },
+      after({ current, next }) {
+        nextAfter(next, false);
+      },
       leave({ current, next }) {
           console.log("Leave() - Welcome - Back");  
         
+       
           //Forberedt next container (welcome)
           $(next.container).find('div.intro_container.is-01').css("opacity", "0");
           $(next.container).find('div.intro_container.is-02').css("opacity", "1");
@@ -340,6 +355,7 @@ barba.init({
             duration: 2
           }, "-=0.5");
       
+        
           return tl;
       }
     },    
@@ -354,10 +370,15 @@ barba.init({
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
       },
-
+     
+      after({ current, next }) {
+        nextAfter(next, true);
+      },
       enter({ current, next }) {
         console.log("Enter: " + current.url.path + " -> " + next.url.path);
         
+        nextBefore(next);
+
         const direction = next.direction;
         const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
@@ -380,6 +401,7 @@ barba.init({
           tl.to(next.container, { x: 0, duration: 1.8 }, 0);
         }
 
+       
         // Animate highlight for the new link
         const slug = next.url.path.replace(/^\/+|\/+$/g, "");
         animateHighlightToLink(tl, slug, 8);
