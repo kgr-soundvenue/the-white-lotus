@@ -1,4 +1,4 @@
-console.log("v1.1.31");
+console.log("v1.1.32");
 
 
 function showMenuMobile(){
@@ -317,16 +317,15 @@ barba.init({
           console.log("Leave() - Welcome - Back");  
         
           //Forberedt next container (welcome)
-          $(next.container).find('img[data-w-id="7efcec14-de9c-97bd-45f6-0b7aea23d931"]').css("opacity", "0");
-          $(next.container).find('div[data-w-id="21e3c9d2-bca7-143d-dfa7-45ae4004158c"]').css("opacity", "1");
-          $(next.container).find('div[data-w-id="7c3139a4-4515-7563-c182-6e64cb681d97"]').css("opacity", "1");
+          $('div.intro_container.is-01').css("opacity", "0");
+          $('div.intro_container.is-02').css("opacity", "1");
 
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
           });
 
           // Animer current container ud (fade out)
-          tl.to(next.container, {
+          tl.to(current.container, {
             opacity: 0,
             duration: 2
           });
@@ -335,7 +334,7 @@ barba.init({
           tl.set(next.container, { opacity: 0 });
         
           // Animer next container ind (fade in og zoom in)
-          tl.to(current.container, {
+          tl.to(next.container, {
             opacity: 1,
             scale: 1,
             duration: 2
