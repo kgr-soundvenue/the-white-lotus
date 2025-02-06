@@ -1,4 +1,4 @@
-console.log("v1.2.1");
+console.log("v1.2.2");
 
 
 function showMenuMobile(){
@@ -413,6 +413,49 @@ barba.init({
         return tl;
       },
     },    
+    {
+      name: "articles",
+      sync: true,
+      from: { namespace: ['article'] },
+      
+      enter({ current, next }) {
+        nextBefore(next);
+      },
+      after({ current, next }) {
+        nextAfter(next, true);
+      },
+      leave({ current, next }) {
+          console.log("Leave() - Welcome");
+
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.out" },
+          });
+
+          // Forward transition:
+          // Den nye side starter 100px nede (y: 100) og anmodes op til y: 0 med fade-in.
+          tl.set(next.container, { opacity: 0, y: 100 });
+          
+          // Animer current container ud – evt. fade den ud
+          tl.to(current.container, {
+            opacity: 0,
+            duration: 1.5
+          }, 0);
+          
+          // Animer next container ind: glid op fra bunden til sin naturlige position
+          tl.to(next.container, {
+            opacity: 1,
+            y: 0,
+            duration: 1.5
+          }, "-=1");
+      
+          // Ekstra animation: fremhævning af et link baseret på slug
+          const slug = next.url.path.replace(/^\/+|\/+$/g, "");
+          animateHighlightToLink(tl, slug, 8);
+
+
+          return tl;
+      }
+    },    
   ],
 });
 
@@ -435,4 +478,5 @@ document.addEventListener("DOMContentLoaded", () => {
       setHighlight(null, navWrap, slug, 8, false);
     });
 });
+
 
