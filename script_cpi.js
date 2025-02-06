@@ -365,7 +365,7 @@ barba.init({
 
       // Decide direction based on pageOrder indices
       beforeLeave({ current, next }) {
-        console.log("BeforeLeave: " + current.url.path + " -> " + next.url.path);
+        console.log("Normal pages - BeforeLeave: " + current.url.path + " -> " + next.url.path);
         const fromIndex = getPageIndex(current.url.path);
         const toIndex   = getPageIndex(next.url.path);
         next.direction  = fromIndex < toIndex ? "right" : "left";
@@ -375,7 +375,7 @@ barba.init({
         nextAfter(next, true);
       },
       enter({ current, next }) {
-        console.log("Enter: " + current.url.path + " -> " + next.url.path);
+        console.log("Normal pages - Enter: " + current.url.path + " -> " + next.url.path);
         
         nextBefore(next);
 
@@ -414,7 +414,36 @@ barba.init({
       },
     },    
     {
-      name: "articles",
+      name: "click article",
+      sync: true,
+      to: { namespace: ['article'] },
+      
+      enter({ current, next }) {
+        nextBefore(next);
+      },
+      after({ current, next }) {
+        nextAfter(next, true);
+      },
+      leave({ current, next }) {
+          console.log("Leave() - article");
+
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.out" },
+          });
+
+
+          // Forbered den nye container: placér den under skærmen
+          gsap.set(next.container, { y: "100vh", zIndex: 10 });
+
+          // Animer next.container ind: glid den op fra bunden til sin normale position
+          tl.to(next.container, { y: 0, duration: 1.8 }, 0);
+                
+         
+          return tl;
+      }
+    },   
+    {
+      name: "back from article",
       sync: true,
       from: { namespace: ['article'] },
       
@@ -425,37 +454,20 @@ barba.init({
         nextAfter(next, true);
       },
       leave({ current, next }) {
-          console.log("Leave() - Welcome");
+          console.log("Leave() - article");
 
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
           });
 
-          // Forward transition:
-          // Den nye side starter 100px nede (y: 100) og anmodes op til y: 0 med fade-in.
-          tl.set(next.container, { opacity: 0, y: 100 });
-          
-          // Animer current container ud – evt. fade den ud
-          tl.to(current.container, {
-            opacity: 0,
-            duration: 1.5
-          }, 0);
-          
-          // Animer next container ind: glid op fra bunden til sin naturlige position
-          tl.to(next.container, {
-            opacity: 1,
-            y: 0,
-            duration: 1.5
-          }, "-=1");
-      
-          // Ekstra animation: fremhævning af et link baseret på slug
-          const slug = next.url.path.replace(/^\/+|\/+$/g, "");
-          animateHighlightToLink(tl, slug, 8);
 
+          gsap.set(current.container, { zIndex: 10 });
 
+          tl.to(current.container, { y: "100vh", duration: 1.8 }, 0);
+         
           return tl;
       }
-    },    
+    },         
   ],
 });
 
