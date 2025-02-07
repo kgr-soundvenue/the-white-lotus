@@ -287,7 +287,14 @@ barba.init({
       leave({ current, next }) {
           console.log("Leave() - Welcome");
 
+          $('.nav_menu_wrap, .menu_button_wrap, .navbar_background').each(function() {
+            this.style.setProperty('display', 'block', 'important');
+          });
           
+          gsap.set('.nav_menu_wrap, .menu_button_wrap, .navbar_background', {
+            y: "-100%",
+            opacity: 0
+          });
 
           const tl = gsap.timeline({
             defaults: { ease: "power2.out" },
@@ -306,9 +313,25 @@ barba.init({
           // Animer next container ind (fade in)
           tl.to(next.container, {
             opacity: 1,
-            duration: 2
+            duration: 1
           }, "-=0.5");
       
+          
+
+          
+          tl.to('.nav_menu_wrap, .menu_button_wrap, .navbar_background', {
+            y: "0%",
+            opacity: 1,
+            ease: "power2.out",
+            duration: 1.5
+          }, "-=0.5");
+          
+          
+          
+
+          //$(next.container).find('div.intro_container.is-01').css("opacity", "0");
+          
+
           // Ekstra animation: fremhævning af et link baseret på slug
           const slug = next.url.path.replace(/^\/+|\/+$/g, "");
           animateHighlightToLink(tl, slug, 8);
