@@ -288,13 +288,17 @@ barba.init({
           console.log("Leave() - Welcome");
 
           hideMenuMobile();
-          
+
           $('.nav_menu_wrap, .menu_button_wrap, .navbar_background').each(function() {
             this.style.setProperty('display', 'block', 'important');
           });
           
-          gsap.set('.nav_menu_wrap, .menu_button_wrap, .navbar_background', {
+          gsap.set('.nav_menu_wrap, .menu_button_wrap', {
             y: "-100%",
+            opacity: 0
+          });
+
+          gsap.set('.navbar_background', {
             opacity: 0
           });
 
@@ -321,12 +325,15 @@ barba.init({
           
 
           
-          tl.to('.nav_menu_wrap, .menu_button_wrap, .navbar_background', {
+          tl.to('.nav_menu_wrap, .menu_button_wrap', {
             y: "0%",
             opacity: 1,
-            ease: "power2.out",
             duration: 1.5
           }, "-=0.5");
+          tl.to('.navbar_background', {
+            opacity: 1,
+            duration: 1.5
+          }, "-=2"); //start samtidig med ovenstående.
           
           
           
