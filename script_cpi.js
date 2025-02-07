@@ -286,7 +286,9 @@ barba.init({
       },
       leave({ current, next }) {
           console.log("Leave() - Welcome");
-
+          
+          hideMenuMobile();
+          
           $('.nav_menu_wrap, .menu_button_wrap, .navbar_background').each(function() {
             this.style.setProperty('display', 'block', 'important');
           });
