@@ -712,6 +712,102 @@ function addContentTrackingAttributes($container) {
   setTimeout(function(){ _paq.push(['trackContentImpressionsWithinNode', $('.page_wrap')[0]]);}, 500);
 }
 
+// Global array til at gemme YouTube-spillere (kan bruges til debugging eller senere reference)
+var ytPlayers = [];
+
+// Funktion der initialiserer YouTube-tracking for alle embeds i en given container (jQuery-objekt)
+function initYouTubeTracking($container) {
+    // Vælg alle iframes med YouTube embed URL (både standard og no-cookies)
+    $container.find('iframe[src*="youtube.com/embed/"], iframe[src*="youtube-nocookie.com/embed/"]').each(function() {
+        var $iframe = $(this);
+        // Hvis embed allerede er initialiseret, så spring videre
+        if ($iframe.data('ytTrackingInitialized')) {
+            return;
+        }
+        $iframe.data('ytTrackingInitialized', true);
+
+        // Opret en YouTube-spiller på denne iframe
+        var player = new YT.Player(this, {
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+        // Tilføj et objekt til progress tracking – vi tracker thresholds fra 5% til 100% (kan evt. udelade 100%, da ended bliver tracket)
+        player.__progressThresholds = {};
+        for (var i = 5; i <= 100; i += 5) {
+            player.__progressThresholds[i] = false;
+        }
+        player.__progressInterval = null;
+        ytPlayers.push(player);
+    });
+}
+
+// Callback der kaldes, når YouTube-spillerens tilstand ændres
+function onPlayerStateChange(event) {
+    var state = event.data;
+    var player = event.target;
+    var videoUrl = player.getVideoUrl();
+
+    // Når videoen spiller, start et interval der tjekker progress hvert sekund
+    if (state === YT.PlayerState.PLAYING) {
+        if (!player.__progressInterval) {
+            player.__progressInterval = setInterval(function() {
+                var currentTime = player.getCurrentTime();
+                var duration = player.getDuration();
+                if (duration > 0) {
+                    var percent = (currentTime / duration) * 100;
+                    // Gennemløb alle thresholds og send event hvis procenten er nået og ikke endnu er tracket
+                    for (var threshold in player.__progressThresholds) {
+                        if (!player.__progressThresholds[threshold] && percent >= parseFloat(threshold)) {
+                            player.__progressThresholds[threshold] = true;
+                            _paq.push(['trackEvent', 'YouTube Progress', threshold + '% Viewed', videoUrl]);
+                            // Eksempel: [ 'trackEvent', 'YouTube Progress', '5% Viewed', 'https://youtube.com/watch?v=xxx' ]
+                        }
+                    }
+                }
+            }, 1000);
+        }
+        // Send play-event (hvis det ønskes at tracke play separat)
+        _paq.push(['trackEvent', 'YouTube', 'Play', videoUrl]);
+    }
+    // Når videoen sættes på pause, stoppes intervallet og der sendes et pause-event
+    else if (state === YT.PlayerState.PAUSED) {
+        if (player.__progressInterval) {
+            clearInterval(player.__progressInterval);
+            player.__progressInterval = null;
+        }
+        _paq.push(['trackEvent', 'YouTube', 'Pause', videoUrl]);
+    }
+    // Når videoen er færdig, stoppes intervallet og der sendes et ended-event
+    else if (state === YT.PlayerState.ENDED) {
+        if (player.__progressInterval) {
+            clearInterval(player.__progressInterval);
+            player.__progressInterval = null;
+        }
+        _paq.push(['trackEvent', 'YouTube', 'Ended', videoUrl]);
+    }
+    // Andre tilstande (som buffering) kan tilpasses efter behov
+}
+
+// YouTube API – hvis den ikke allerede er loaded, loader vi den
+if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
+
+// Når YouTube API er klar, bliver onYouTubeIframeAPIReady kaldt automatisk.
+// Hvis du bruger Barba, vil du typisk køre initYouTubeTracking i din after-hook – men hvis siden
+// er første load, kan du også initialisere her.
+window.onYouTubeIframeAPIReady = function() {
+    // Hvis der findes embeds på den aktuelle side (fx i .page_wrap)
+    initYouTubeTracking($('.page_wrap'));
+};
+
+
+
+
 // Ved page load (uden Barba) kører vi init-funktionen
 $(document).ready(function () {
   initScrollDepthTracking();
@@ -769,6 +865,9 @@ barba.hooks.after(data => {
 
     //Reset scroll
     initScrollDepthTracking();
+
+    //Enable Youtube Tracking
+    initYouTubeTracking($(data.next.container));
 
 });
 

@@ -610,52 +610,266 @@ setInterval(function () {
 }, 500);
 
 
+function initScrollDepthTracking() {
+  // Først fjerner vi eventuelt gamle scroll-event handlers (ved brug af et namespace)
+  $(window).off('scroll.scrollDepthTracking');
+
+  // Definer de scroll depths, du vil tracke
+  var scrollDepths = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99];
+  // Nulstil arrays for den nye side
+  var trackedScrollDepths = new Array(scrollDepths.length).fill(false);
+  var pendingEvents = [];
+
+  // Throttle-funktion for at begrænse, hvor ofte vi kalder trackScrollDepth
+  function throttle(func, limit) {
+      var inThrottle;
+      return function () {
+          var context = this, args = arguments;
+          if (!inThrottle) {
+              func.apply(context, args);
+              inThrottle = true;
+              setTimeout(function () {
+                  inThrottle = false;
+              }, limit);
+          }
+      };
+  }
+
+  // Funktion til at sende event til Matomo for de scroll depths, der er nået
+  function sendPendingEvents() {
+      if (pendingEvents.length > 0) {
+          console.log('Sending scroll events to Matomo:', pendingEvents);
+          var batchEvents = pendingEvents.map(function(depth) {
+              return ['trackEvent', 'Scroll Depth', depth + '%'];
+          });
+          _paq.push.apply(_paq, batchEvents);
+          pendingEvents = [];
+      }
+  }
+
+  // Funktion til at checke scroll depth
+  function trackScrollDepth() {
+      var scrollTop = $(window).scrollTop();
+      var docHeight = $(document).height();
+      var winHeight = $(window).height();
+      var scrollPercent = (scrollTop / (docHeight - winHeight)) * 100;
+      // console.log('Scroll Percent:', scrollPercent.toFixed(2) + '%');
+
+      for (var i = 0; i < scrollDepths.length; i++) {
+          if (scrollPercent >= scrollDepths[i] && !trackedScrollDepths[i]) {
+              // console.log('Queue scroll event for', scrollDepths[i] + '%');
+              pendingEvents.push(scrollDepths[i]);
+              trackedScrollDepths[i] = true;
+          }
+      }
+
+      sendPendingEvents();
+  }
+
+  // Bind scroll-eventet med throttling
+  $(window).on('scroll.scrollDepthTracking', throttle(trackScrollDepth, 800));
+}
 
 
+
+
+
+function addContentTrackingAttributes($container) {
+  // Et objekt til at holde antallet for hver unikke class-streng
+  var classCounts = {};
+
+  // Find både <section> og .footer_wrap inden for .page_main
+  $container.find('.page_main section, .page_main .footer_wrap').each(function() {
+      var $el = $(this);
+      
+      // Hvis elementet har klassen "is-hidden", spring det over
+      if ($el.hasClass('is-hidden')) {
+          return; // fortsæt til næste element
+      }
+      
+      // Tilføj data-track-content for at aktivere content tracking
+      $el.attr('data-track-content', '');
+      // Sæt data-content-name til "Section" for alle
+      $el.attr('data-content-name', 'Section');
+      
+      // Hent elementets class-streng
+      var classes = $el.attr('class') || '';
+      
+      // Hvis denne class-streng ikke er talt endnu, initialiser tælleren
+      if (!classCounts[classes]) {
+          classCounts[classes] = 0;
+      }
+      // Øg tælleren for denne class-streng
+      classCounts[classes]++;
+
+      // Formatér tælleren med foranstillede nuller til 3 cifre, fx (001), (002) osv.
+      var countStr = '(' + ('000' + classCounts[classes]).slice(-3) + ')';
+
+      // Sæt data-content-piece til at være class-strengen efterfulgt af løbenummeret
+      $el.attr('data-content-piece', classes + ' ' + countStr);
+  });
+
+  setTimeout(function(){ _paq.push(['trackContentImpressionsWithinNode', $('.page_wrap')[0]]);}, 500);
+}
+
+// Global array til at gemme YouTube-spillere (kan bruges til debugging eller senere reference)
+var ytPlayers = [];
+
+// Funktion der initialiserer YouTube-tracking for alle embeds i en given container (jQuery-objekt)
+function initYouTubeTracking($container) {
+    // Vælg alle iframes med YouTube embed URL (både standard og no-cookies)
+    $container.find('iframe[src*="youtube.com/embed/"], iframe[src*="youtube-nocookie.com/embed/"]').each(function() {
+        var $iframe = $(this);
+        // Hvis embed allerede er initialiseret, så spring videre
+        if ($iframe.data('ytTrackingInitialized')) {
+            return;
+        }
+        $iframe.data('ytTrackingInitialized', true);
+
+        // Opret en YouTube-spiller på denne iframe
+        var player = new YT.Player(this, {
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+        // Tilføj et objekt til progress tracking – vi tracker thresholds fra 5% til 100% (kan evt. udelade 100%, da ended bliver tracket)
+        player.__progressThresholds = {};
+        for (var i = 5; i <= 100; i += 5) {
+            player.__progressThresholds[i] = false;
+        }
+        player.__progressInterval = null;
+        ytPlayers.push(player);
+    });
+}
+
+// Callback der kaldes, når YouTube-spillerens tilstand ændres
+function onPlayerStateChange(event) {
+    var state = event.data;
+    var player = event.target;
+    var videoUrl = player.getVideoUrl();
+
+    // Når videoen spiller, start et interval der tjekker progress hvert sekund
+    if (state === YT.PlayerState.PLAYING) {
+        if (!player.__progressInterval) {
+            player.__progressInterval = setInterval(function() {
+                var currentTime = player.getCurrentTime();
+                var duration = player.getDuration();
+                if (duration > 0) {
+                    var percent = (currentTime / duration) * 100;
+                    // Gennemløb alle thresholds og send event hvis procenten er nået og ikke endnu er tracket
+                    for (var threshold in player.__progressThresholds) {
+                        if (!player.__progressThresholds[threshold] && percent >= parseFloat(threshold)) {
+                            player.__progressThresholds[threshold] = true;
+                            _paq.push(['trackEvent', 'YouTube Progress', threshold + '% Viewed', videoUrl]);
+                            // Eksempel: [ 'trackEvent', 'YouTube Progress', '5% Viewed', 'https://youtube.com/watch?v=xxx' ]
+                        }
+                    }
+                }
+            }, 1000);
+        }
+        // Send play-event (hvis det ønskes at tracke play separat)
+        _paq.push(['trackEvent', 'YouTube', 'Play', videoUrl]);
+    }
+    // Når videoen sættes på pause, stoppes intervallet og der sendes et pause-event
+    else if (state === YT.PlayerState.PAUSED) {
+        if (player.__progressInterval) {
+            clearInterval(player.__progressInterval);
+            player.__progressInterval = null;
+        }
+        _paq.push(['trackEvent', 'YouTube', 'Pause', videoUrl]);
+    }
+    // Når videoen er færdig, stoppes intervallet og der sendes et ended-event
+    else if (state === YT.PlayerState.ENDED) {
+        if (player.__progressInterval) {
+            clearInterval(player.__progressInterval);
+            player.__progressInterval = null;
+        }
+        _paq.push(['trackEvent', 'YouTube', 'Ended', videoUrl]);
+    }
+    // Andre tilstande (som buffering) kan tilpasses efter behov
+}
+
+// YouTube API – hvis den ikke allerede er loaded, loader vi den
+if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
+
+// Når YouTube API er klar, bliver onYouTubeIframeAPIReady kaldt automatisk.
+// Hvis du bruger Barba, vil du typisk køre initYouTubeTracking i din after-hook – men hvis siden
+// er første load, kan du også initialisere her.
+window.onYouTubeIframeAPIReady = function() {
+    // Hvis der findes embeds på den aktuelle side (fx i .page_wrap)
+    initYouTubeTracking($('.page_wrap'));
+};
+
+
+
+
+// Ved page load (uden Barba) kører vi init-funktionen
+$(document).ready(function () {
+  initScrollDepthTracking();
+  
+  addContentTrackingAttributes($('.page_wrap'));
+});
 
 barba.hooks.after(data => {
-console.log("Running matomo script to change page to " + document.title + " # " + data.next.url.href);
+    console.log("Running matomo script to change page to " + document.title + " # " + data.next.url.href);
 
     _paq.push(['setCustomUrl', data.next.url.href]);
     _paq.push(['setDocumentTitle', document.title]);
-_paq.push(['setReferrerUrl', data.current.url.href]);
-_paq.push(['trackPageView']);
+    _paq.push(['setReferrerUrl', data.current.url.href]);
+    _paq.push(['trackPageView']);
 
-_paq.push(['MediaAnalytics::scanForMedia', document]);
-_paq.push(['FormAnalytics::scanForForms', document]);
-_paq.push(['trackContentImpressionsWithinNode', document]);
-_paq.push(['enableLinkTracking']);
+    _paq.push(['MediaAnalytics::scanForMedia', document]);
+    _paq.push(['FormAnalytics::scanForForms', document]);
+
+    _paq.push(['enableLinkTracking']);
 
 
-var pagesData = TimeMe.getTimeOnAllPagesInSeconds();
-var pageExists = false;
+    //Reset content tracking
+    addContentTrackingAttributes($(data.next.container));
 
-// Tjek om pagesData er et array (fx [{pageName:'...', timeOnPage:...}, ...])
-if (Array.isArray(pagesData)) {
-  for (var i = 0; i < pagesData.length; i++) {
-    if (pagesData[i].pageName === document.title) {
-      pageExists = true;
-      break;
+    var pagesData = TimeMe.getTimeOnAllPagesInSeconds();
+    var pageExists = false;
+
+    // Tjek om pagesData er et array (fx [{pageName:'...', timeOnPage:...}, ...])
+    if (Array.isArray(pagesData)) {
+      for (var i = 0; i < pagesData.length; i++) {
+        if (pagesData[i].pageName === document.title) {
+          pageExists = true;
+          break;
+        }
+      }
     }
-  }
-}
 
-// Hvis siden ikke allerede findes, send baseline-event (0 sekunder)
-if (!pageExists) {
-  _paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
-}
+    // Hvis siden ikke allerede findes, send baseline-event (0 sekunder)
+    if (!pageExists) {
+      _paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
+    }
 
-// Sæt den nye side som den aktuelle i TimeMe
-TimeMe.setCurrentPageName(document.title);	  
+    // Sæt den nye side som den aktuelle i TimeMe
+    TimeMe.setCurrentPageName(document.title);	  
 
 
-// Hent de aktuelle stier fra Barba-dataobjektet
-var fromPath = data.current.url.path;
-var toPath = data.next.url.path;
+    // Hent de aktuelle stier fra Barba-dataobjektet
+    var fromPath = data.current.url.path;
+    var toPath = data.next.url.path;
 
-// Udløs et custom event i Matomo
-// Parametre: [Event Category, Event Action, Event Name/Label, Value]
-_paq.push(['trackEvent', 'Navigation', 'Click', 'From: ' + fromPath + ' -> To: ' + toPath, 1]);
+    // Udløs et custom event i Matomo
+    // Parametre: [Event Category, Event Action, Event Name/Label, Value]
+    _paq.push(['trackEvent', 'Navigation', 'Click', 'From: ' + fromPath + ' -> To: ' + toPath, 1]);
 
+
+    //Reset scroll
+    initScrollDepthTracking();
+
+    //Enable Youtube Tracking
+    initYouTubeTracking($(data.next.container));
 
 });
+
+
+
