@@ -465,7 +465,7 @@ barba.init({
 
 
           // Forbered den nye container: placér den under skærmen
-          gsap.set(next.container, { y: "100vh", zIndex: 10 });
+          gsap.set(next.container, { y: "100vh", zIndex: 2000 });
 
           // Animer next.container ind: glid den op fra bunden til sin normale position
           tl.to(next.container, { y: 0, duration: 1.8 }, 0);
