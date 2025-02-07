@@ -524,3 +524,138 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+
+/*************************************************************
+ * 8) Matomo tracking with barba events
+ *    
+ *************************************************************/
+function pad(number, length) {
+  var str = '' + number;
+  while (str.length < length) {
+    str = '0' + str;
+  }
+  return str;
+}
+
+// Initialiser TimeMe med en inaktiv timeout på 30 sekunder
+TimeMe.initialize({
+  idleTimeoutInSeconds: 30, // stop recording time due to inactivity
+  currentPageName: document.title // sætter den aktuelle sides navn til dokumentets title
+});
+
+
+// Vi bruger to tracking-kategorier:
+// "TimeSpentPage" til den enkelte side og "TimeSpentSession" til den samlede (globale) tid.
+var svTrackEveryXSecond = 10;
+
+// Arrays (her som objekter) til at undgå at sende dublerede events for hver timer
+window.svTrackTimeSpentPage = {};
+window.svTrackTimeSpentSession = {};
+
+// Send baseline events (0 sekunder) for både side og session
+_paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
+_paq.push(['trackEvent', 'TimeSpentSession', 'Global Session', 'Spent ' + pad(0,10), 1]);
+
+
+
+setInterval(function () {
+        
+  // --- SIDETIMER ---
+  // Hent tiden for den nuværende side (i sekunder)
+  let timeSpentOnPage = TimeMe.getTimeOnCurrentPageInSeconds();
+  let timeSpentRoundedSecondsPage = Math.floor(timeSpentOnPage);
+  
+  // Send event for sidetid hvert 10. sekund (hvis det ikke allerede er sendt)
+  if (!window.svTrackTimeSpentPage[document.title]) {
+    window.svTrackTimeSpentPage[document.title] = {};
+  }
+  if (timeSpentRoundedSecondsPage % svTrackEveryXSecond === 0 && timeSpentOnPage > 1 &&  !window.svTrackTimeSpentPage[document.title][timeSpentRoundedSecondsPage.toString()]) {
+    window.svTrackTimeSpentPage[document.title][timeSpentRoundedSecondsPage.toString()] = true;
+    _paq.push([
+      'trackEvent',
+      'TimeSpentPage',
+      'Title: ' + document.title,
+      'Spent ' + pad(timeSpentRoundedSecondsPage, 10),
+      1
+    ]);
+    // console.log('Page Time: Spent ' + pad(timeSpentRoundedSecondsPage,10) + ' seconds');
+  }
+  
+  // --- GLOBAL SESSION TIMER ---
+  // Hent alle sider og summer tiden for at få den globale sessiontid
+  let allPagesData = TimeMe.getTimeOnAllPagesInSeconds();
+  let totalSessionTime = 0;
+  
+  // Hvis allPagesData er et array af objekter med {pageName, timeOnPage}:
+  if (Array.isArray(allPagesData)) {
+    allPagesData.forEach(function(pageData) {
+      totalSessionTime += pageData.timeOnPage;
+    });
+  }
+  
+  
+  let timeSpentRoundedSecondsSession = Math.floor(totalSessionTime);
+  if (timeSpentRoundedSecondsSession % svTrackEveryXSecond === 0 && timeSpentRoundedSecondsSession > 1 && window.svTrackTimeSpentSession[timeSpentRoundedSecondsSession.toString()] !== true) {
+    window.svTrackTimeSpentSession[timeSpentRoundedSecondsSession.toString()] = true;
+    _paq.push([
+      'trackEvent',
+      'TimeSpentSession',
+      'Global Session',
+      'Spent ' + pad(timeSpentRoundedSecondsSession, 10),
+      1
+    ]);
+    // console.log('Session Time: Spent ' + pad(timeSpentRoundedSecondsSession,10) + ' seconds');
+  }
+  
+}, 500);
+
+
+
+
+
+barba.hooks.after(data => {
+console.log("Running matomo script to change page to " + document.title + " # " + data.next.url.href);
+
+    _paq.push(['setCustomUrl', data.next.url.href]);
+    _paq.push(['setDocumentTitle', document.title]);
+_paq.push(['setReferrerUrl', data.current.url.href]);
+_paq.push(['trackPageView']);
+
+_paq.push(['MediaAnalytics::scanForMedia', document]);
+_paq.push(['FormAnalytics::scanForForms', document]);
+_paq.push(['trackContentImpressionsWithinNode', document]);
+_paq.push(['enableLinkTracking']);
+
+
+var pagesData = TimeMe.getTimeOnAllPagesInSeconds();
+var pageExists = false;
+
+// Tjek om pagesData er et array (fx [{pageName:'...', timeOnPage:...}, ...])
+if (Array.isArray(pagesData)) {
+  for (var i = 0; i < pagesData.length; i++) {
+    if (pagesData[i].pageName === document.title) {
+      pageExists = true;
+      break;
+    }
+  }
+}
+
+// Hvis siden ikke allerede findes, send baseline-event (0 sekunder)
+if (!pageExists) {
+  _paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
+}
+
+// Sæt den nye side som den aktuelle i TimeMe
+TimeMe.setCurrentPageName(document.title);	  
+
+
+// Hent de aktuelle stier fra Barba-dataobjektet
+var fromPath = data.current.url.path;
+var toPath = data.next.url.path;
+
+// Udløs et custom event i Matomo
+// Parametre: [Event Category, Event Action, Event Name/Label, Value]
+_paq.push(['trackEvent', 'Navigation', 'Click', 'From: ' + fromPath + ' -> To: ' + toPath, 1]);
+
+
+});
