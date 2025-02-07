@@ -610,52 +610,167 @@ setInterval(function () {
 }, 500);
 
 
+function initScrollDepthTracking() {
+  // Først fjerner vi eventuelt gamle scroll-event handlers (ved brug af et namespace)
+  $(window).off('scroll.scrollDepthTracking');
+
+  // Definer de scroll depths, du vil tracke
+  var scrollDepths = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99];
+  // Nulstil arrays for den nye side
+  var trackedScrollDepths = new Array(scrollDepths.length).fill(false);
+  var pendingEvents = [];
+
+  // Throttle-funktion for at begrænse, hvor ofte vi kalder trackScrollDepth
+  function throttle(func, limit) {
+      var inThrottle;
+      return function () {
+          var context = this, args = arguments;
+          if (!inThrottle) {
+              func.apply(context, args);
+              inThrottle = true;
+              setTimeout(function () {
+                  inThrottle = false;
+              }, limit);
+          }
+      };
+  }
+
+  // Funktion til at sende event til Matomo for de scroll depths, der er nået
+  function sendPendingEvents() {
+      if (pendingEvents.length > 0) {
+          console.log('Sending scroll events to Matomo:', pendingEvents);
+          var batchEvents = pendingEvents.map(function(depth) {
+              return ['trackEvent', 'Scroll Depth', depth + '%'];
+          });
+          _paq.push.apply(_paq, batchEvents);
+          pendingEvents = [];
+      }
+  }
+
+  // Funktion til at checke scroll depth
+  function trackScrollDepth() {
+      var scrollTop = $(window).scrollTop();
+      var docHeight = $(document).height();
+      var winHeight = $(window).height();
+      var scrollPercent = (scrollTop / (docHeight - winHeight)) * 100;
+      // console.log('Scroll Percent:', scrollPercent.toFixed(2) + '%');
+
+      for (var i = 0; i < scrollDepths.length; i++) {
+          if (scrollPercent >= scrollDepths[i] && !trackedScrollDepths[i]) {
+              // console.log('Queue scroll event for', scrollDepths[i] + '%');
+              pendingEvents.push(scrollDepths[i]);
+              trackedScrollDepths[i] = true;
+          }
+      }
+
+      sendPendingEvents();
+  }
+
+  // Bind scroll-eventet med throttling
+  $(window).on('scroll.scrollDepthTracking', throttle(trackScrollDepth, 800));
+}
 
 
+
+
+
+function addContentTrackingAttributes($container) {
+  // Et objekt til at holde antallet for hver unikke class-streng
+  var classCounts = {};
+
+  // Find både <section> og .footer_wrap inden for .page_main
+  $container.find('.page_main section, .page_main .footer_wrap').each(function() {
+      var $el = $(this);
+      
+      // Hvis elementet har klassen "is-hidden", spring det over
+      if ($el.hasClass('is-hidden')) {
+          return; // fortsæt til næste element
+      }
+      
+      // Tilføj data-track-content for at aktivere content tracking
+      $el.attr('data-track-content', '');
+      // Sæt data-content-name til "Section" for alle
+      $el.attr('data-content-name', 'Section');
+      
+      // Hent elementets class-streng
+      var classes = $el.attr('class') || '';
+      
+      // Hvis denne class-streng ikke er talt endnu, initialiser tælleren
+      if (!classCounts[classes]) {
+          classCounts[classes] = 0;
+      }
+      // Øg tælleren for denne class-streng
+      classCounts[classes]++;
+
+      // Formatér tælleren med foranstillede nuller til 3 cifre, fx (001), (002) osv.
+      var countStr = '(' + ('000' + classCounts[classes]).slice(-3) + ')';
+
+      // Sæt data-content-piece til at være class-strengen efterfulgt af løbenummeret
+      $el.attr('data-content-piece', classes + ' ' + countStr);
+  });
+
+  setTimeout(function(){ _paq.push(['trackContentImpressionsWithinNode', $('.page_wrap')[0]]);}, 500);
+}
+
+// Ved page load (uden Barba) kører vi init-funktionen
+$(document).ready(function () {
+  initScrollDepthTracking();
+  
+  addContentTrackingAttributes($('.page_wrap'));
+});
 
 barba.hooks.after(data => {
-console.log("Running matomo script to change page to " + document.title + " # " + data.next.url.href);
+    console.log("Running matomo script to change page to " + document.title + " # " + data.next.url.href);
 
     _paq.push(['setCustomUrl', data.next.url.href]);
     _paq.push(['setDocumentTitle', document.title]);
-_paq.push(['setReferrerUrl', data.current.url.href]);
-_paq.push(['trackPageView']);
+    _paq.push(['setReferrerUrl', data.current.url.href]);
+    _paq.push(['trackPageView']);
 
-_paq.push(['MediaAnalytics::scanForMedia', document]);
-_paq.push(['FormAnalytics::scanForForms', document]);
-_paq.push(['trackContentImpressionsWithinNode', document]);
-_paq.push(['enableLinkTracking']);
+    _paq.push(['MediaAnalytics::scanForMedia', document]);
+    _paq.push(['FormAnalytics::scanForForms', document]);
+
+    _paq.push(['enableLinkTracking']);
 
 
-var pagesData = TimeMe.getTimeOnAllPagesInSeconds();
-var pageExists = false;
+    //Reset content tracking
+    addContentTrackingAttributes($(data.next.container));
 
-// Tjek om pagesData er et array (fx [{pageName:'...', timeOnPage:...}, ...])
-if (Array.isArray(pagesData)) {
-  for (var i = 0; i < pagesData.length; i++) {
-    if (pagesData[i].pageName === document.title) {
-      pageExists = true;
-      break;
+    var pagesData = TimeMe.getTimeOnAllPagesInSeconds();
+    var pageExists = false;
+
+    // Tjek om pagesData er et array (fx [{pageName:'...', timeOnPage:...}, ...])
+    if (Array.isArray(pagesData)) {
+      for (var i = 0; i < pagesData.length; i++) {
+        if (pagesData[i].pageName === document.title) {
+          pageExists = true;
+          break;
+        }
+      }
     }
-  }
-}
 
-// Hvis siden ikke allerede findes, send baseline-event (0 sekunder)
-if (!pageExists) {
-  _paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
-}
+    // Hvis siden ikke allerede findes, send baseline-event (0 sekunder)
+    if (!pageExists) {
+      _paq.push(['trackEvent', 'TimeSpentPage', 'Title: ' + document.title, 'Spent ' + pad(0,10), 1]);
+    }
 
-// Sæt den nye side som den aktuelle i TimeMe
-TimeMe.setCurrentPageName(document.title);	  
+    // Sæt den nye side som den aktuelle i TimeMe
+    TimeMe.setCurrentPageName(document.title);	  
 
 
-// Hent de aktuelle stier fra Barba-dataobjektet
-var fromPath = data.current.url.path;
-var toPath = data.next.url.path;
+    // Hent de aktuelle stier fra Barba-dataobjektet
+    var fromPath = data.current.url.path;
+    var toPath = data.next.url.path;
 
-// Udløs et custom event i Matomo
-// Parametre: [Event Category, Event Action, Event Name/Label, Value]
-_paq.push(['trackEvent', 'Navigation', 'Click', 'From: ' + fromPath + ' -> To: ' + toPath, 1]);
+    // Udløs et custom event i Matomo
+    // Parametre: [Event Category, Event Action, Event Name/Label, Value]
+    _paq.push(['trackEvent', 'Navigation', 'Click', 'From: ' + fromPath + ' -> To: ' + toPath, 1]);
 
+
+    //Reset scroll
+    initScrollDepthTracking();
 
 });
+
+
+
