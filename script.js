@@ -1,94 +1,31 @@
 console.log("v1.2.7");
 
 
-document.addEventListener('DOMContentLoaded', function() {
-      // Select elements
-      const mobileMenuWrap = document.querySelector('.nav_menu_wrap.is-mobile');
-      const menuButton = document.querySelector('.menu_button');
-      const blurOverlay = document.querySelector('.blur-on-menu-open');
-      
-      // (Optional) Ensure initial states with GSAP (could also be in CSS)
-      gsap.set(mobileMenuWrap, { height: 0, overflow: 'hidden' });
-      gsap.set(blurOverlay, { display: 'none', opacity: 0 });
-      
-      // Helper function to determine the natural height of the mobile menu.
-      // This function temporarily sets the height to "auto" so that we can read its full height.
-      function getAutoHeight(element) {
-        // Store the current inline height (if any)
-        const previousHeight = element.style.height;
-        // Temporarily set height to auto and make sure the element is visible
-        gsap.set(element, { height: 'auto', overflow: 'visible' });
-        const autoHeight = element.offsetHeight;
-        // Restore the previous height
-        gsap.set(element, { height: previousHeight, overflow: 'hidden' });
-        return autoHeight;
-      }
-      
-      // Calculate the auto (natural) height of the mobile menu content.
-      const menuAutoHeight = getAutoHeight(mobileMenuWrap);
-      
-      // Track the menu's open/closed state.
-      let menuOpen = false;
-      
-      // Function to open the menu.
-      function openMenu() {
-        // Animate the menu height from 0 to its natural height.
-        gsap.to(mobileMenuWrap, {
-          duration: 0.5,
-          height: menuAutoHeight,
-          ease: "power1.inOut"
-        });
-        
-        // Show and fade in the blur overlay.
-        gsap.set(blurOverlay, { display: 'block' });
-        gsap.to(blurOverlay, {
-          duration: 0.5,
-          opacity: 1,
-          ease: "power1.inOut"
-        });
-      }
-      
-      // Function to close the menu.
-      function closeMenu() {
-        // Animate the menu height back to 0.
-        gsap.to(mobileMenuWrap, {
-          duration: 0.5,
-          height: 0,
-          ease: "power1.inOut"
-        });
-        
-        // Fade out the blur overlay then hide it.
-        gsap.to(blurOverlay, {
-          duration: 0.5,
-          opacity: 0,
-          ease: "power1.inOut",
-          onComplete: () => {
-            gsap.set(blurOverlay, { display: 'none' });
-          }
-        });
-      }
-      
-      // Toggle function to open or close the menu.
-      function toggleMenu() {
-        if (menuOpen) {
-          closeMenu();
-        } else {
-          openMenu();
-        }
-        menuOpen = !menuOpen;
-      }
-      
-      // Add event listeners for both click and touch events (to cover mobile)
-      menuButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        toggleMenu();
-      });
-      
-      menuButton.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        toggleMenu();
-      });
-    });
+function showMenuMobile(){
+  // Slide down the mobile menu (using jQuery)
+  window.mobileMenuWrap.slideDown(500);
+  
+  // Immediately set the blur element to be visible with opacity 0,
+  // then animate its opacity to 1 over 0.5 seconds using GSAP.
+  gsap.set(".blur-on-menu-open", { display: "block", opacity: 0 });
+  gsap.to(".blur-on-menu-open", { duration: 0.5, opacity: 1, ease: "power1.inOut" });
+}
+
+function hideMenuMobile(){
+  // Slide up the mobile menu (using jQuery)
+  window.mobileMenuWrap.slideUp(500);
+  
+  // Animate the blur element's opacity to 0 over 0.5 seconds using GSAP.
+  // Once complete, set display to none.
+  gsap.to(".blur-on-menu-open", { 
+    duration: 0.5, 
+    opacity: 0, 
+    ease: "power1.inOut", 
+    onComplete: function() {
+      gsap.set(".blur-on-menu-open", { display: "none" });
+    }
+  });
+}
 
 // Initialize the mobile menu wrap (using jQuery)
 window.mobileMenuWrap = $('.nav_menu_wrap.is-mobile');
