@@ -1,4 +1,4 @@
-console.log("v1.2.9");
+console.log("v1.3.0");
 
 
 function showMenuMobile(){
@@ -26,6 +26,18 @@ function hideMenuMobile(){
     }
   });
 }
+
+// Initialize the mobile menu wrap (using jQuery)
+window.mobileMenuWrap = $('.nav_menu_wrap.is-mobile');
+
+// Set mobile menu button click event
+$('.menu_button').click(function(){
+  if (window.mobileMenuWrap.is(':hidden')) {
+    showMenuMobile();
+  } else {
+    hideMenuMobile();
+  }
+});
 
 /*************************************************
  * 1) Define page order for horizontal transitions
