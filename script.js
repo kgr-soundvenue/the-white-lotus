@@ -1,29 +1,35 @@
-console.log("v1.2.7");
+console.log("v1.2.8");
 
 
 function showMenuMobile(){
+  console.log("showMenuMobile called");
+
   // Slide down the mobile menu (using jQuery)
-  window.mobileMenuWrap.slideDown(500);
+  window.mobileMenuWrap.slideDown(500, function(){
+    console.log("Mobile menu has finished sliding down.");
+  });
   
-  // Immediately set the blur element to be visible with opacity 0,
-  // then animate its opacity to 1 over 0.5 seconds using GSAP.
-  gsap.set(".blur-on-menu-open", { display: "block", opacity: 0 });
-  gsap.to(".blur-on-menu-open", { duration: 0.5, opacity: 1, ease: "power1.inOut" });
+  // Immediately show the blur element with full opacity using jQuery.
+  console.log("Setting blur element to visible.");
+  $(".blur-on-menu-open").css({
+    "display": "block",
+    "opacity": 1
+  });
 }
 
 function hideMenuMobile(){
+  console.log("hideMenuMobile called");
+
   // Slide up the mobile menu (using jQuery)
-  window.mobileMenuWrap.slideUp(500);
+  window.mobileMenuWrap.slideUp(500, function(){
+    console.log("Mobile menu has finished sliding up.");
+  });
   
-  // Animate the blur element's opacity to 0 over 0.5 seconds using GSAP.
-  // Once complete, set display to none.
-  gsap.to(".blur-on-menu-open", { 
-    duration: 0.5, 
-    opacity: 0, 
-    ease: "power1.inOut", 
-    onComplete: function() {
-      gsap.set(".blur-on-menu-open", { display: "none" });
-    }
+  // Immediately hide the blur element using jQuery.
+  console.log("Hiding blur element.");
+  $(".blur-on-menu-open").css({
+    "display": "none",
+    "opacity": 0
   });
 }
 
