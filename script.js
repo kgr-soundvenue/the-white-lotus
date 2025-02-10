@@ -1,49 +1,31 @@
-console.log("v1.2.8");
+console.log("v1.2.9");
 
 
 function showMenuMobile(){
-  console.log("showMenuMobile called");
-
   // Slide down the mobile menu (using jQuery)
-  window.mobileMenuWrap.slideDown(500, function(){
-    console.log("Mobile menu has finished sliding down.");
-  });
+  window.mobileMenuWrap.slideDown(500);
   
-  // Immediately show the blur element with full opacity using jQuery.
-  console.log("Setting blur element to visible.");
-  $(".blur-on-menu-open").css({
-    "display": "block",
-    "opacity": 1
-  });
+  // Immediately set the blur element to be visible with opacity 0,
+  // then animate its opacity to 1 over 0.5 seconds using GSAP.
+  gsap.set(".blur-on-menu-open", { display: "block", opacity: 0 });
+  gsap.to(".blur-on-menu-open", { duration: 0.5, opacity: 1, ease: "power1.inOut" });
 }
 
 function hideMenuMobile(){
-  console.log("hideMenuMobile called");
-
   // Slide up the mobile menu (using jQuery)
-  window.mobileMenuWrap.slideUp(500, function(){
-    console.log("Mobile menu has finished sliding up.");
-  });
+  window.mobileMenuWrap.slideUp(500);
   
-  // Immediately hide the blur element using jQuery.
-  console.log("Hiding blur element.");
-  $(".blur-on-menu-open").css({
-    "display": "none",
-    "opacity": 0
+  // Animate the blur element's opacity to 0 over 0.5 seconds using GSAP.
+  // Once complete, set display to none.
+  gsap.to(".blur-on-menu-open", { 
+    duration: 0.5, 
+    opacity: 0, 
+    ease: "power1.inOut", 
+    onComplete: function() {
+      gsap.set(".blur-on-menu-open", { display: "none" });
+    }
   });
 }
-
-// Initialize the mobile menu wrap (using jQuery)
-window.mobileMenuWrap = $('.nav_menu_wrap.is-mobile');
-
-// Set mobile menu button click event
-$('.menu_button').click(function(){
-  if (window.mobileMenuWrap.is(':hidden')) {
-    showMenuMobile();
-  } else {
-    hideMenuMobile();
-  }
-});
 
 /*************************************************
  * 1) Define page order for horizontal transitions
