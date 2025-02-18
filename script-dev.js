@@ -1,20 +1,37 @@
-console.log("v1.2.5");
+console.log("v1.3.2");
 
 
 function showMenuMobile(){
+  // Slide down the mobile menu (using jQuery)
   window.mobileMenuWrap.slideDown(500);
+  
+  // Immediately set the blur element to be visible with opacity 0,
+  // then animate its opacity to 1 over 0.5 seconds using GSAP.
+  gsap.set(".blur-on-menu-open", { display: "block", opacity: 0 });
+  gsap.to(".blur-on-menu-open", { duration: 0.5, opacity: 1, ease: "power1.inOut" });
 }
 
 function hideMenuMobile(){
+  // Slide up the mobile menu (using jQuery)
   window.mobileMenuWrap.slideUp(500);
+  
+  // Animate the blur element's opacity to 0 over 0.5 seconds using GSAP.
+  // Once complete, set display to none.
+  gsap.to(".blur-on-menu-open", { 
+    duration: 0.5, 
+    opacity: 0, 
+    ease: "power1.inOut", 
+    onComplete: function() {
+      gsap.set(".blur-on-menu-open", { display: "none" });
+    }
+  });
 }
 
+// Initialize the mobile menu wrap (using jQuery)
 window.mobileMenuWrap = $('.nav_menu_wrap.is-mobile');
 
-//Set mobile menu button
+// Set mobile menu button click event
 $('.menu_button').click(function(){
-  
-  // Hvis elementet er skjult, slidedown, ellers slideup
   if (window.mobileMenuWrap.is(':hidden')) {
     showMenuMobile();
   } else {
@@ -479,6 +496,7 @@ barba.init({
       sync: true,
       from: { namespace: ['article'] },
       
+          
       enter({ current, next }) {
         gsap.set(current.container, {
             position: "fixed",
@@ -501,6 +519,7 @@ barba.init({
         resetWebflow(next);
         
       },
+
       leave({ current, next }) {
           console.log("Leave() - article");
 
