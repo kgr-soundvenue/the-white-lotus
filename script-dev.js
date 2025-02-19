@@ -515,7 +515,7 @@ barba.init({
       
       after({ current, next }) {
         gsap.set(next.container, { position: "relative" });
-        //window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
       
         resetWebflow(next);
         
