@@ -515,7 +515,7 @@ barba.init({
       },*/
       enter({ current, next }) {
         return new Promise(resolve => {
-            $("html, body").animate({ scrollTop: 0 }, 300, function() {
+            $("html, body").animate({ scrollTop: 0 }, 1500, function() {
                 gsap.set(current.container, {
                     position: "fixed",
                     top: 0,
