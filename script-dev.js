@@ -514,8 +514,15 @@ barba.init({
         });
       },*/
       async enter({ current, next }) {
+        gsap.set(next.container, {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+        });
+
         await new Promise(resolve => {
-            $("html, body").animate({ scrollTop: 0 }, 300, resolve);
+            $("html, body").animate({ scrollTop: 0 }, 1200, resolve);
         });
     
         gsap.set(current.container, {
@@ -525,12 +532,7 @@ barba.init({
             width: "100%",
         });
     
-        gsap.set(next.container, {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-        });
+
      },
     
       after({ current, next }) {
