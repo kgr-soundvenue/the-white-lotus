@@ -1,4 +1,4 @@
-console.log("v1.3.2");
+console.log("v1.3.3");
 
 
 function showMenuMobile(){
@@ -496,8 +496,9 @@ barba.init({
       sync: true,
       from: { namespace: ['article'] },
       
-          
+       /*   
       enter({ current, next }) {
+        $("html, body").animate({ scrollTop: 0 }, 300);
         gsap.set(current.container, {
             position: "fixed",
             top: 0,
@@ -511,7 +512,29 @@ barba.init({
           left: 0,
           width: "100%",
         });
+      },*/
+      enter({ current, next }) {
+        return new Promise(resolve => {
+            $("html, body").animate({ scrollTop: 0 }, 300, function() {
+                gsap.set(current.container, {
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                });
+    
+                gsap.set(next.container, {
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                });
+    
+                resolve(); // Fortsæt Barba.js-processen
+            });
+        });
       },
+    
       after({ current, next }) {
         gsap.set(next.container, { position: "relative" });
         //window.scrollTo(0, 0);
