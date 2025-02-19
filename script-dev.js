@@ -513,27 +513,25 @@ barba.init({
           width: "100%",
         });
       },*/
-      enter({ current, next }) {
-        return new Promise(resolve => {
-            $("html, body").animate({ scrollTop: 0 }, 1500, function() {
-                gsap.set(current.container, {
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                });
-    
-                gsap.set(next.container, {
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                });
-    
-                resolve(); // Fortsæt Barba.js-processen
-            });
+      async enter({ current, next }) {
+        await new Promise(resolve => {
+            $("html, body").animate({ scrollTop: 0 }, 300, resolve);
         });
-      },
+    
+        gsap.set(current.container, {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+        });
+    
+        gsap.set(next.container, {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+        });
+     },
     
       after({ current, next }) {
         gsap.set(next.container, { position: "relative" });
