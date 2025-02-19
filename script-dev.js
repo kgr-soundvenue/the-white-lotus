@@ -493,7 +493,7 @@ barba.init({
     },   
     {
       name: "back from article",
-      sync: true,
+      sync: false,
       from: { namespace: ['article'] },
       
        /*   
