@@ -1,4 +1,4 @@
-console.log("v1.3.3");
+console.log("v1.3.10");
 
 
 function showMenuMobile(){
@@ -496,31 +496,12 @@ barba.init({
       sync: true,
       from: { namespace: ['article'] },
       
-    
       enter({ current, next }) {
-        gsap.set(current.container, {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-          });
-  
-        gsap.set(next.container, {
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-        });
+        nextBefore(next);
       },
-      
       after({ current, next }) {
-        gsap.set(next.container, { position: "relative" });
-        window.scrollTo(0, 0);
-      
-        resetWebflow(next);
-        
+        nextAfter(next, true);
       },
-
       leave({ current, next }) {
           console.log("Leave() - article");
 
