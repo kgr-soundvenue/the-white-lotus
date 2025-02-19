@@ -493,12 +493,11 @@ barba.init({
     },   
     {
       name: "back from article",
-      sync: false,
+      sync: true,
       from: { namespace: ['article'] },
       
-       /*   
+    
       enter({ current, next }) {
-        $("html, body").animate({ scrollTop: 0 }, 300);
         gsap.set(current.container, {
             position: "fixed",
             top: 0,
@@ -512,29 +511,8 @@ barba.init({
           left: 0,
           width: "100%",
         });
-      },*/
-      async enter({ current, next }) {
-        gsap.set(next.container, {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-        });
-
-        await new Promise(resolve => {
-            $("html, body").animate({ scrollTop: 0 }, 1200, resolve);
-        });
-    
-        gsap.set(current.container, {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-        });
-    
-
-     },
-    
+      },
+      
       after({ current, next }) {
         gsap.set(next.container, { position: "relative" });
         //window.scrollTo(0, 0);
